@@ -67,9 +67,9 @@ npm pack "git+https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider.git#8
 
 This exact download command has been verified to produce `dsh-galaxy-effort-slider-0.1.4.tgz`, including the prebuilt plugin and both READMEs. Then install that tarball using Option A. This verifies package retrieval, not installation in your actual DSH profile. The pinned commit is the initial v0.1.4 source publication; later documentation changes do not alter its runtime.
 
-### Option B: install from npm, once published
+### Option B: install from npm
 
-Registry publication is pending. Use this route only after version `0.1.4` is available under `dsh-galaxy-effort-slider`; until then, use the tarball route above.
+Check registry availability, then install the versioned package through DSH:
 
 ```sh
 npm view dsh-galaxy-effort-slider@0.1.4 version
@@ -88,7 +88,7 @@ For CLI installation, open Desktop once to initialize its profile, confirm the m
 dsh plugin --profile desktop add "/absolute/path/dsh-galaxy-effort-slider-0.1.4.tgz"
 ```
 
-Restart Desktop afterward. Once the npm version is published, the package specifier can replace the tarball path. Do not substitute a different CLI with `npx ...@latest` or bypass a compatibility warning.
+Restart Desktop afterward. The npm package specifier `dsh-galaxy-effort-slider@0.1.4` can replace the tarball path. Do not substitute a different CLI with `npx ...@latest` or bypass a compatibility warning.
 
 ### Remove
 

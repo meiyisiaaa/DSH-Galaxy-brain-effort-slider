@@ -67,9 +67,9 @@ npm pack "git+https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider.git#8
 
 这条完整命令已验证，会生成包含预构建插件和双语 README 的 `dsh-galaxy-effort-slider-0.1.4.tgz`。随后按方式 A 安装该文件。这验证的是下载与打包，不代表已经在您的实际 DSH profile 中安装。固定提交对应首次 v0.1.4 源码发布，后续文档更新不改变其运行代码。
 
-### 方式二：npm 发布后直接安装
+### 方式二：从 npm 安装
 
-npm 发布尚待完成。只有确认 `dsh-galaxy-effort-slider` 下的 `0.1.4` 版本已可用，才使用此方式；此前请使用上面的本地安装包。
+先检查 npm 中的版本，再通过 DSH 安装指定版本：
 
 ```sh
 npm view dsh-galaxy-effort-slider@0.1.4 version
@@ -88,7 +88,7 @@ dsh plugin --profile web add dsh-galaxy-effort-slider@0.1.4
 dsh plugin --profile desktop add "/绝对路径/dsh-galaxy-effort-slider-0.1.4.tgz"
 ```
 
-完成后重新启动 Desktop。npm 版本发布后，也可用包名与版本替换 tarball 路径。不要临时通过 `npx ...@latest` 换用另一版 CLI，也不要绕过兼容性警告。
+完成后重新启动 Desktop。也可用 `dsh-galaxy-effort-slider@0.1.4` 替换 tarball 路径。不要临时通过 `npx ...@latest` 换用另一版 CLI，也不要绕过兼容性警告。
 
 ### 移除
 
