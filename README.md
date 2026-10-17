@@ -57,6 +57,16 @@ dsh plugin --profile web add "/absolute/path/dsh-galaxy-effort-slider-0.1.4.tgz"
 
 The CLI adds a newly installed bundle to the chosen profile. If it is disabled, enable it in **Plugins**. Without hot reload, fully restart that profile and refresh the page. The bundle already includes its registration patch; no manual UI patching is needed.
 
+### Download with npm directly from GitHub (available now)
+
+No npm registry account is needed to download this public repository. With Git and npm installed, run:
+
+```sh
+npm pack "git+https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider.git#8257d0ab5a645bcd39e64c48312953b6a90befa8" --ignore-scripts
+```
+
+This exact download command has been verified to produce `dsh-galaxy-effort-slider-0.1.4.tgz`, including the prebuilt plugin and both READMEs. Then install that tarball using Option A. This verifies package retrieval, not installation in your actual DSH profile. The pinned commit is the initial v0.1.4 source publication; later documentation changes do not alter its runtime.
+
 ### Option B: install from npm, once published
 
 Registry publication is pending. Use this route only after version `0.1.4` is available under `dsh-galaxy-effort-slider`; until then, use the tarball route above.

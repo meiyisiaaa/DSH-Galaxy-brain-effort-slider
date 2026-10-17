@@ -57,6 +57,16 @@ dsh plugin --profile web add "/绝对路径/dsh-galaxy-effort-slider-0.1.4.tgz"
 
 CLI 会把首次成功添加的新 bundle 纳入对应 profile；若已被关闭，请在 **Plugins** 页启用。不支持热更新时，完整重启该 profile 并刷新页面。安装包已带有注册 patch，无需手工修改原生 UI。
 
+### 现在即可通过 npm 从 GitHub 下载
+
+下载这个公开仓库不需要 npm 注册账号。电脑上已有 Git 和 npm 时，运行：
+
+```sh
+npm pack "git+https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider.git#8257d0ab5a645bcd39e64c48312953b6a90befa8" --ignore-scripts
+```
+
+这条完整命令已验证，会生成包含预构建插件和双语 README 的 `dsh-galaxy-effort-slider-0.1.4.tgz`。随后按方式 A 安装该文件。这验证的是下载与打包，不代表已经在您的实际 DSH profile 中安装。固定提交对应首次 v0.1.4 源码发布，后续文档更新不改变其运行代码。
+
 ### 方式二：npm 发布后直接安装
 
 npm 发布尚待完成。只有确认 `dsh-galaxy-effort-slider` 下的 `0.1.4` 版本已可用，才使用此方式；此前请使用上面的本地安装包。
