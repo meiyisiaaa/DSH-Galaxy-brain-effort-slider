@@ -1,0 +1,81 @@
+{
+  "name": "dsh-galaxy-effort-slider",
+  "version": "0.1.4",
+  "description": "DeepSeek Harness 原生推理档位银河滑块",
+  "type": "module",
+  "license": "MIT",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE",
+    "docs",
+    "cordis.patch.yml",
+    "README.zh-CN.md",
+    "CHANGELOG.md"
+  ],
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-model-selection",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-session"
+      ]
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/test.mjs",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test && npm run build && npm run test:bundle",
+    "pack:local": "npm run check && npm pack --ignore-scripts",
+    "preview": "node scripts/preview.mjs",
+    "test:bundle": "node scripts/test-bundle.mjs",
+    "check:upstream": "node scripts/check-upstream-contract.mjs"
+  },
+  "engines": {
+    "node": ">=20",
+    "dsh": "0.2.0-rc.2"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "esbuild": "0.25.10",
+    "jsdom": "26.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "typescript": "5.7.3"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh": "0.2.0-rc.2"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider.git"
+  },
+  "homepage": "https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider#readme",
+  "bugs": {
+    "url": "https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider/issues"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "reasoning-effort",
+    "galaxy",
+    "slider"
+  ]
+}

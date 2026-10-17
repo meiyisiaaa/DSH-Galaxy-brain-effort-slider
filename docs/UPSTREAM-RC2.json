@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "verifiedOn": "2026-10-17",
+  "repository": "https://github.com/deepseek-ai/deepseek-harness",
+  "tag": "dsh-v0.2.0-rc.2",
+  "version": "0.2.0-rc.2",
+  "commit": "639ed015397290b3745d163aafe02ffee4aa3f84",
+  "releaseUrl": "https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.0-rc.2",
+  "previousBaseline": "1517a4dbca0a2789ff1d41ba439600f8547d23fa",
+  "npm": {
+    "name": "@deepseek-ai/dsh",
+    "version": "0.2.0-rc.2",
+    "metadataUrl": "https://registry.npmjs.org/@deepseek-ai%2fdsh/0.2.0-rc.2",
+    "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh/-/dsh-0.2.0-rc.2.tgz",
+    "integrity": "sha512-EAJ3gPNcVt/uv8X19PMm9NkVhWgT7xXNMk0UKCVm+IQ5rpSQOcsMUa0HWlnYYVybKMsccjcRB21vVVsaXQ6IdA==",
+    "gitHead": null
+  },
+  "files": [
+    {
+      "path": "apps/cli/package.json",
+      "sha256": "96845d9efaa4ab078f1405fbe28445b606b5ab79377fd607866dd46b0c0b52c1",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "sha256": "eef6bc1131564aac2af0667487236edc5c1be721747b4ac81c9442937d34252c",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/boot/app-boot/src/plugin-compatibility.ts",
+      "sha256": "ab688efec2beb165e2a0917b36fa72bfd5c8b96b8be3a1e6121b76ba24748135",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/client/modules/src/client/manifest.ts",
+      "sha256": "2e44bce01dc004fcb6a21b68445dfd3a8cb05fb2b715b1df8e75ed642609686e",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/client/modules/src/client/system.ts",
+      "sha256": "01ae8f4cac487eecfd5133aaaa045fd531cb21616638f3c694f1ab43c7fba8bf",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/client/modules/src/index.ts",
+      "sha256": "683dace2553c67226cb5b0603cd235e65cd1f521dec31f69d972391eb6688f69",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/client/tsdown.client.ts",
+      "sha256": "8afeabc31d95e2c0ff5735193273f4d67bb1ef81f1adf3f45eb5adbef9510b33",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/client/web/src/platform.ts",
+      "sha256": "72e7a9bf2187a8a79c3871cddaa067afc25b5c2d28abb7373e6a8113122413ac",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/client/ui-slots/src/index.ts",
+      "sha256": "27a453937cdcc28923c37ad90cd01489e458e205dc03032629183087b5b585d0",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/client/ui-conversation/src/client/contract/slots.ts",
+      "sha256": "d7a2c2132b62dd7b2eeac5ef184666ea8f84ff42a7469d4815e705a30bad0e78",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/client/ui-model-selection/src/client/directory.ts",
+      "sha256": "305ad0c95eabf8d314c648eb9e4614c356ebd080d864216b2995a49981bfcd42",
+      "identicalToPreviousBaseline": true
+    },
+    {
+      "path": "packages/client/ui-model-selection/src/client/service.ts",
+      "sha256": "488f7634405fe666728ab9687d7bfe57b3d96e2309aebe5fb838e279718472f5",
+      "identicalToPreviousBaseline": true
+    },
+    {
+      "path": "packages/api/session-controller/src/types.ts",
+      "sha256": "10e8460f23f897b6d65b6ce979e26d56e386589201e063bdb076b7a9b5322cf2",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/api/session-controller/src/client/contract/snapshot.ts",
+      "sha256": "2bce8bea78abba375566c1231bb090a89b0407af4082912542869ba0a69e72ac",
+      "identicalToPreviousBaseline": true
+    },
+    {
+      "path": "packages/api/session-controller/src/client/sessions/service.ts",
+      "sha256": "71b6d24ef3c899e6fcc758ab21c0a3be9dcb2333fa2eb47ad8737d02a1aaacd7",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "packages/api/session-controller/src/commands.ts",
+      "sha256": "e5e9b7df2ff4d3477d9005548496e5ca1c2adaa69470aa6de399e822d683c7a7",
+      "identicalToPreviousBaseline": false
+    },
+    {
+      "path": "apps/web/tests/fixtures/plugins/fixture-input-extension/package.json",
+      "sha256": "14144ccce66acdde49a4980efc20a1d554c9f75bd6ed191b4669c38daefa0c4b",
+      "identicalToPreviousBaseline": true
+    },
+    {
+      "path": "apps/web/tests/fixtures/plugins/fixture-input-extension/cordis.patch.yml",
+      "sha256": "a730cc408fd8a7cd4b4f56fe6ce2cc194939f2c9a6ef994f64a03581544f8ef7",
+      "identicalToPreviousBaseline": true
+    },
+    {
+      "path": "apps/cli/src/plugin.ts",
+      "sha256": "8d745164b418d3dc14a3a10ce38bea148de4fb2d9ff9b336e224073f3e43848d",
+      "identicalToPreviousBaseline": true
+    },
+    {
+      "path": "packages/client/ui-plugin-manager/README.md",
+      "sha256": "6e79e0d5e1a616080af949ec371b1d22985b645e1ef6b54ccedefaf0c156b0e1",
+      "identicalToPreviousBaseline": false
+    }
+  ]
+}
