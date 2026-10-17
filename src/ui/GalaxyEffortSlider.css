@@ -1,3 +1,10 @@
+/* Per-frame values are registered non-inheriting and written straight onto the
+   element that consumes them. Writing them on an ancestor would re-style all
+   ~290 descendants of the rail on every frame instead of a single node. */
+@property --dsg-progress { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --dsg-pixel-reveal { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --dsg-energy { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --dsg-drift { syntax: "<length>"; inherits: false; initial-value: 0px; }
 .dsg {
   --dsg-surface: #171a24;
   --dsg-surface-soft: #202434;
@@ -26,22 +33,18 @@
 .dsg-chip[data-unavailable="true"] .dsg-chip-star { color: var(--dsg-muted); }
 .dsg-chevron { width: 14px; height: 14px; fill: none; stroke: var(--dsg-muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 180ms; }
 .dsg-chip[aria-expanded="true"] .dsg-chevron { transform: rotate(180deg); }
-.dsg-panel { z-index: 2147483000; width: 368px; max-width: calc(100vw - 24px); overflow: auto; overscroll-behavior: contain; isolation: isolate; padding: 17px 18px 0; border: 1px solid var(--dsg-line); border-radius: 22px; background: radial-gradient(ellipse at 85% 4%, #697fce18, transparent 55%), radial-gradient(ellipse at 8% 58%, #815cc20d, transparent 50%), var(--dsg-surface); box-shadow: 0 25px 75px #05091680, 0 4px 18px #0b102c40, 0 0 0 1px #b5c9ff06, inset 0 1px #ffffff0d; animation: dsg-enter 160ms ease-out both; }
+.dsg-panel { z-index: 2147483000; width: 368px; max-width: calc(100vw - 24px); overflow: auto; overscroll-behavior: contain; isolation: isolate; padding: 17px 18px 18px; border: 1px solid var(--dsg-line); border-radius: 22px; background: radial-gradient(ellipse at 85% 4%, #697fce18, transparent 55%), radial-gradient(ellipse at 8% 58%, #815cc20d, transparent 50%), var(--dsg-surface); box-shadow: 0 25px 75px #05091680, 0 4px 18px #0b102c40, 0 0 0 1px #b5c9ff06, inset 0 1px #ffffff0d; animation: dsg-enter 160ms ease-out both; }
 .dsg-panel::before { content: ""; position: absolute; pointer-events: none; top: 0; left: 24px; right: 24px; height: 1px; background: linear-gradient(90deg, transparent, #b6cfff80 40%, #d0b1ff55 70%, transparent); }
 .dsg-panel { overflow-x: hidden; }
 .dsg-panel:focus { outline: none; }
-.dsg-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.dsg-heading { min-width: 0; padding-top: 5px; }
-.dsg-heading h2 { font-family: inherit; font-size: 16px; font-weight: 600; line-height: 1.4; letter-spacing: -.02em; margin: 0; }
-.dsg-heading p { margin: 3px 0 0; font-size: 14px; color: var(--dsg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dsg-close { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; margin: -5px -9px 0 0; padding: 0; border: 0; border-radius: 12px; background: transparent; }
+.dsg-header { display: flex; align-items: center; gap: 8px; }
+.dsg-model { flex: 1 1 auto; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dsg-muted); font-size: 13px; line-height: 20px; letter-spacing: .01em; }
+.dsg-close { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; margin: -12px -10px -12px 0; padding: 0; border: 0; border-radius: 12px; background: transparent; }
 .dsg-close:hover { background: var(--dsg-surface-soft); }
 .dsg-close svg { width: 20px; height: 20px; fill: none; stroke: var(--dsg-muted); stroke-width: 1.5; stroke-linecap: round; }
-.dsg-selection { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 28px; margin-top: 21px; font-size: 14px; color: var(--dsg-muted); }
-.dsg-selection strong { min-width: 0; max-width: 75%; color: var(--dsg-accent-strong); font-weight: 600; overflow-wrap: anywhere; text-align: center; }
 .dsg-control { margin: 0 -4px; overflow: clip; }
 /* Direct thumb transforms are independent of the continuous CSS pixel field. */
-.dsg-track { --dsg-progress: 0; --dsg-render-progress: 0; --dsg-energy: 0; --dsg-lean: 0deg; position: relative; height: 112px; padding: 0 32px; outline: none; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; border-radius: 15px; }
+.dsg-track { position: relative; height: 112px; padding: 0 32px; outline: none; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; border-radius: 15px; }
 .dsg-track[aria-disabled="true"] { cursor: default; }
 .dsg-track[data-dragging="true"] { cursor: grabbing; }
 .dsg-runway { position: relative; width: 100%; height: 100%; }
@@ -96,11 +99,8 @@
 .dsg-option[aria-pressed="true"] .dsg-option-dot { opacity: 1; }
 .dsg-label-rail[data-dense="true"] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; height: auto; margin: -5px 6px 0; }
 .dsg-label-rail[data-dense="true"] .dsg-option { position: relative; left: auto !important; transform: none; max-width: none; width: 100%; white-space: normal; overflow-wrap: anywhere; justify-content: center; }
-.dsg-help { margin: 8px 3px 17px; font-size: 14px; line-height: 1.6; color: var(--dsg-muted); text-align: center; overflow-wrap: anywhere; }
-.dsg-error { margin: 0 0 16px; padding: 10px 12px; color: var(--dsg-error); background: #e9537310; border: 1px solid #e9537338; border-radius: 10px; font-size: 14px; overflow-wrap: anywhere; }
-.dsg-footer { display: flex; align-items: flex-start; gap: 8px; padding: 13px 0 16px; border-top: 1px solid var(--dsg-line); color: var(--dsg-muted); }
-.dsg-footer p { margin: 0; font-size: 14px; line-height: 1.6; }
-.dsg-sync-icon { flex-shrink: 0; padding-top: 1px; color: var(--dsg-accent); font-size: 17px; }
+.dsg-help { margin: 4px 3px 0; font-size: 14px; line-height: 1.6; color: var(--dsg-muted); text-align: center; overflow-wrap: anywhere; }
+.dsg-error { margin: 8px 0 0; padding: 10px 12px; color: var(--dsg-error); background: #e9537310; border: 1px solid #e9537338; border-radius: 10px; font-size: 14px; overflow-wrap: anywhere; }
 .dsg-spinner { display: inline-block; flex: 0 0 13px; width: 13px; height: 13px; border: 1.5px solid #9aabff45; border-top-color: var(--dsg-accent); border-radius: 50%; animation: dsg-spin .9s linear infinite; }
 .dsg-burst { position: absolute; inset: 0; pointer-events: none; }
 .dsg-burst::before { display: none; content: ""; position: absolute; width: 108px; height: 86px; left: -22px; top: -6px; background: radial-gradient(ellipse, #e5d5ff88, #9f8aff44 30%, #67b8ff22 50%, transparent 70%); border-radius: 50%; animation: dsg-bloom 600ms ease-out both; }

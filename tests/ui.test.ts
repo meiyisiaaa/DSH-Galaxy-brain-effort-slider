@@ -155,11 +155,13 @@ test('pixel geometry belongs to the full rail and remains unchanged across effor
   assert.equal(selector('.dsg-galaxy-fill').childElementCount, 0);
   const original = field.innerHTML;
   pointer(track, 'pointerdown', 130);
-  assert.equal(track.style.getPropertyValue('--dsg-pixel-reveal'), '30.000px');
+  assert.equal(field.style.getPropertyValue('--dsg-pixel-reveal'), '30.000px');
   pointer(track, 'pointermove', 370);
-  assert.equal(track.style.getPropertyValue('--dsg-pixel-reveal'), '270.000px');
+  assert.equal(field.style.getPropertyValue('--dsg-pixel-reveal'), '270.000px');
   assert.equal(field.innerHTML, original);
-  assert.equal(field.getAttribute('style'), null);
+  // The reveal lives on the starfield itself (its only consumer) so a frame never
+  // restyles the ~290 descendants of the rail; the pixel DOM stays untouched.
+  assert.equal(track.style.getPropertyValue('--dsg-pixel-reveal'), '');
   assert.match(sliderCSS, /\.dsg-starfield\s*\{[^}]*inset: 0;[^}]*clip-path: inset/);
   assert.match(sliderCSS, /max\(24px, var\(--dsg-pixel-reveal, 0px\)\)/);
   pointer(track, 'pointercancel', 370);
@@ -215,7 +217,7 @@ test('drag is continuous, commits only on release, and pending rejects duplicate
   pointer(track, 'pointerup', 390);
   assert.deepEqual(calls, ['max']);
   render({ pending: true, disabled: true });
-  assert.equal(selector('.dsg-selection strong').textContent, 'Max');
+  assert.equal(selector('.dsg-help').textContent, '正在更新为 Max');
   assert.doesNotMatch(selector('.dsg-chip').textContent || '', /不可用/);
   assert.equal(track.dataset.dragging, 'false');
   assert.equal(track.getAttribute('aria-disabled'), 'true');
@@ -348,6 +350,17 @@ test('disabled/no-capability model remains readable but cannot commit', () => {
   assert.equal(document.querySelector('.dsg-track'), null);
 });
 
+test('static instructions and footer are gone while the capability stays in the dialog name', () => {
+  open();
+  assert.equal(document.querySelector('.dsg-footer'), null);
+  assert.equal(selector('.dsg-panel').hasAttribute('aria-describedby'), false);
+  assert.equal(document.querySelector('.dsg-selection'), null);
+  assert.equal(selector('.dsg-panel').getAttribute('aria-label'), '思考力度');
+  assert.equal(document.querySelector('.dsg-title'), null);
+  assert.equal(selector('.dsg-model').textContent, 'DeepSeek V4');
+  assert.equal(document.querySelector('.dsg-help'), null);
+});
+
 test('many or long capability names use the nonoverlapping wrapping layout', () => {
   const many = Array.from({ length: 9 }, (_, index) => ({ value: `tier-${index}`, label: `Tier ${index}` }));
   render({ options: many, value: 'tier-0' });
@@ -430,10 +443,10 @@ test('pending target remains truthful across blur and close/reopen', async () =>
   key(open(), 'End');
   render({ pending: true, disabled: true });
   act(() => window.dispatchEvent(new dom.window.Event('blur')));
-  assert.equal(selector('.dsg-selection strong').textContent, 'Max');
+  assert.equal(selector('.dsg-help').textContent, '正在更新为 Max');
   key(selector('.dsg-track'), 'Escape');
   open();
-  assert.equal(selector('.dsg-selection strong').textContent, 'Max');
+  assert.equal(selector('.dsg-help').textContent, '正在更新为 Max');
   render({ value: 'max', pending: false, disabled: false });
   await act(async () => job.resolve());
   assert.equal(selector('.dsg-option[aria-pressed="true"]').textContent, 'Max');

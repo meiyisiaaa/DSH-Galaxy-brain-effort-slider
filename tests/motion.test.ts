@@ -4,20 +4,21 @@ import { JSDOM } from 'jsdom';
 import { createGalaxyMotion } from '../src/ui/galaxy-motion';
 
 function fixture(initial = 0) {
-  const dom = new JSDOM('<div id="track"><div id="runway"><span id="fill"></span><div id="thumb"><div id="avatar"></div></div></div></div>');
+  const dom = new JSDOM('<div id="track"><div id="runway"><span id="fill"></span><div id="starfield"></div><div id="thumb"><span id="wake"></span><span id="halo"></span><div id="avatar"></div></div></div></div>');
   const get = <T extends HTMLElement>(id: string) => dom.window.document.getElementById(id) as T;
   const track = get('track'), runway = get('runway'), fill = get('fill'), thumb = get('thumb'), avatar = get('avatar');
+  const starfield = get('starfield'), wake = get('wake'), halo = get('halo');
   let time = 0, nextId = 1, reads = 0, left = 100, width = 300;
   const frames = new Map<number, FrameRequestCallback>();
   const cancelled: number[] = [];
   runway.getBoundingClientRect = () => { reads += 1; return { left, width } as DOMRect; };
-  const motion = createGalaxyMotion({ track, runway, thumb, avatar, fill }, initial, {
+  const motion = createGalaxyMotion({ track, runway, thumb, avatar, fill, starfield, wake, halo }, initial, {
     raf: callback => { const id = nextId++; frames.set(id, callback); return id; },
     caf: id => { cancelled.push(id); frames.delete(id); },
     now: () => time,
   });
   return {
-    motion, track, thumb, avatar, fill, frames, cancelled,
+    motion, track, thumb, avatar, fill, starfield, wake, halo, frames, cancelled,
     reads: () => reads,
     advance(ms: number) { time += ms; },
     resize(newLeft: number, newWidth: number) { left = newLeft; width = newWidth; motion.refreshBounds(); },
@@ -39,7 +40,7 @@ test('pointer translation is immediate without waiting for an animation frame', 
   assert.equal(f.motion.snapshot().position, .473);
   assert.equal(f.thumb.style.transform, 'translate3d(141.900px,0,0)');
   assert.equal(Number.parseFloat(f.fill.style.width), 47.3);
-  assert.equal(f.track.style.getPropertyValue('--dsg-pixel-reveal'), '141.900px');
+  assert.equal(f.starfield.style.getPropertyValue('--dsg-pixel-reveal'), '141.900px');
   assert.equal(f.fill.style.opacity, '0.473');
   assert.equal(f.motion.snapshot().lean, 0);
   f.step();

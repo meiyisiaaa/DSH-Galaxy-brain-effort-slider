@@ -37,6 +37,20 @@ const foregroundPixels = Array.from({ length: 12 }, (_, index) => ({
   animationDelay: `${-((index * 13) % 29) * .1}s`,
   animationDuration: `${1.6 + (index * 3 % 12) * .1}s`,
 }));
+// Built once: a drag re-renders on every tier change, and a stable element keeps
+// React from diffing the whole starfield subtree each time.
+const backgroundPixels = (
+  <span className="dsg-pixel-stream dsg-pixel-background">{[0, 1].map(copy =>
+    <span key={copy} className="dsg-pixel-cell">{referencePixelGroups.map((group, depth) =>
+      <span key={depth} className="dsg-pixel-group" data-depth={depth}>{group.map((style, index) => <i key={index} style={style}/>)}</span>
+    )}</span>
+  )}</span>
+);
+const foregroundStream = (
+  <span className="dsg-pixel-stream dsg-pixel-foreground">{[0, 1].map(copy =>
+    <span key={copy} className="dsg-pixel-cell">{foregroundPixels.map((style, index) => <i key={index} style={style}/>)}</span>
+  )}</span>
+);
 
 /** A controlled capability picker. Only the host's advertised options can be committed. */
 export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
@@ -87,6 +101,9 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
     ?? props.currentLabel
     ?? (value ? '当前档位不可用' : '跟随默认');
   const shownError = busy ? undefined : localError || props.error;
+  const helpText = busy && selected ? `正在更新为 ${selected.label}`
+    : unavailable ? disabledReason || '当前模型未提供可调整的思考力度。'
+    : undefined;
   const expression = displayedIndex >= 0 && options.length > 1
     ? (displayedIndex === options.length - 1 ? 2 : displayedIndex / (options.length - 1) < 0.5 ? 0 : 1)
     : 0;
@@ -94,10 +111,7 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
   const denseLabels = options.length > 4 || options.some(option => [...option.label].reduce((width, char) => width + (char.charCodeAt(0) > 255 ? 2 : 1), 0) > 8);
 
   const paintProgress = useCallback((progress: number, animate: boolean) => {
-    const track = trackRef.current;
-    if (!track) return;
-    track.dataset.settling = String(animate);
-    track.style.setProperty('--dsg-progress', String(clamp(progress)));
+    if (!trackRef.current) return;
     if (animate) motionRef.current?.settle(progress);
     else motionRef.current?.dragTo(progress);
   }, []);
@@ -147,6 +161,9 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
       thumb: track.querySelector<HTMLElement>('.dsg-thumb')!,
       avatar: track.querySelector<HTMLElement>('.dsg-avatar')!,
       fill: track.querySelector<HTMLElement>('.dsg-galaxy-fill')!,
+      starfield: track.querySelector<HTMLElement>('.dsg-starfield')!,
+      wake: track.querySelector<HTMLElement>('.dsg-pixel-wake')!,
+      halo: track.querySelector<HTMLElement>('.dsg-thumb-halo')!,
     }, progressFor(current.options.findIndex(option => option.value === current.value), current.options.length));
     motionRef.current = controller;
     railVisible.current = true;
@@ -414,19 +431,18 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
     </span>
     {open && typeof document !== 'undefined' && createPortal(
       <div ref={popoverRef} id={`${id}-panel`} className="dsg dsg-panel" role="dialog" tabIndex={-1}
-        aria-labelledby={`${id}-title`} aria-describedby={`${id}-help`} aria-busy={busy}
+        aria-label="思考力度" aria-describedby={helpText ? `${id}-help` : undefined} aria-busy={busy}
         data-paused={!pageVisible || !anchorVisible} style={position}>
         <header className="dsg-header">
-          <div className="dsg-heading"><h2 id={`${id}-title`}>思考力度</h2><p title={modelLabel}>{modelLabel || '当前模型'}</p></div>
+          <p className="dsg-model" title={modelLabel}>{modelLabel || '当前模型'}</p>
           <button type="button" className="dsg-close" aria-label="关闭思考力度设置" onClick={() => closePopover(true)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8"/></svg></button>
         </header>
-        <div className="dsg-selection"><span>{busy ? '正在更新' : previewIndex !== null ? '松手选择' : '当前档位'}</span><strong>{selected?.label || currentLabel}</strong>{busy && <span className="dsg-spinner" aria-hidden="true"/>}</div>
         {options.length > 0 && <div className="dsg-control" data-unavailable={unavailable}>
           <div ref={trackRef} className="dsg-track" role={displayedIndex >= 0 ? 'slider' : 'group'} tabIndex={canChange ? 0 : -1}
             aria-label={displayedIndex >= 0 ? '思考力度' : `思考力度：${currentLabel}`} aria-orientation={displayedIndex >= 0 ? 'horizontal' : undefined}
             aria-valuemin={displayedIndex >= 0 ? 0 : undefined} aria-valuemax={displayedIndex >= 0 ? Math.max(options.length - 1, 0) : undefined}
             aria-valuenow={displayedIndex >= 0 ? displayedIndex : undefined} aria-valuetext={displayedIndex >= 0 ? selected?.label : undefined}
-            aria-disabled={!canChange} aria-describedby={`${id}-help`} data-unknown={displayedIndex < 0} data-dragging="false"
+            aria-disabled={!canChange} aria-describedby={helpText ? `${id}-help` : undefined} data-unknown={displayedIndex < 0} data-dragging="false"
             data-peak={density === 'max'}
             data-density={density}
             style={{ '--dsg-middle-alpha': clamp(visualLevel * 2) * .82, '--dsg-nebula-alpha': clamp((visualLevel - .5) * 2) * .92, '--dsg-foreground-alpha': visualLevel * .85 } as CSSProperties}
@@ -436,16 +452,7 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
             onLostPointerCapture={event => { if (drag.current?.id === event.pointerId) cancelDrag(); }}>
             <div ref={runwayRef} className="dsg-runway">
               <div className="dsg-track-bed" aria-hidden="true"><div className="dsg-galaxy-fill"/>
-              <div className="dsg-starfield">
-                <span className="dsg-pixel-stream dsg-pixel-background">{[0, 1].map(copy =>
-                  <span key={copy} className="dsg-pixel-cell">{referencePixelGroups.map((group, depth) =>
-                    <span key={depth} className="dsg-pixel-group" data-depth={depth}>{group.map((style, index) => <i key={index} style={style}/>)}</span>
-                  )}</span>
-                )}</span>
-                <span className="dsg-pixel-stream dsg-pixel-foreground">{[0, 1].map(copy =>
-                  <span key={copy} className="dsg-pixel-cell">{foregroundPixels.map((style, index) => <i key={index} style={style}/>)}</span>
-                )}</span>
-              </div>
+              <div className="dsg-starfield">{backgroundPixels}{foregroundStream}</div>
                 <div className="dsg-ticks">{options.map((option, index) => <i key={option.value} style={{ left: `${progressFor(index, options.length) * 100}%` }}>{index === displayedIndex ? '│' : '·'}</i>)}</div>
               </div>
               <div className="dsg-thumb" aria-hidden="true">
@@ -470,9 +477,8 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
               style={{ left: `${progressFor(index, options.length) * 100}%` }} onClick={() => void commit(index)}>{option.label}<span className="dsg-option-dot" aria-hidden="true"/></button>)}
           </div>
         </div>}
-        <p id={`${id}-help`} className="dsg-help">{unavailable ? disabledReason || '当前模型未提供可调整的思考力度。' : '拖动后松手确认，也可点击档位或使用方向键。'}</p>
+        {helpText && <p id={`${id}-help`} className="dsg-help" role="status">{helpText}</p>}
         {shownError && <p className="dsg-error" role="alert">{shownError}</p>}
-        <footer className="dsg-footer"><span className="dsg-sync-icon" aria-hidden="true">↔</span><p>与原生模型菜单同步；也会尝试保存为新会话默认档位。</p></footer>
       </div>, document.body)}
   </>;
 }

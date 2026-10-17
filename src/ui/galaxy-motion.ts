@@ -13,6 +13,7 @@ export interface GalaxyMotion {
 }
 interface MotionElements {
   track: HTMLElement; runway: HTMLElement; thumb: HTMLElement; avatar: HTMLElement; fill: HTMLElement;
+  starfield: HTMLElement; wake: HTMLElement; halo: HTMLElement;
 }
 interface MotionClock {
   raf?: (callback: FrameRequestCallback) => number;
@@ -21,7 +22,7 @@ interface MotionClock {
 }
 const clamp = (n: number, min = 0, max = 1) => Math.min(max, Math.max(min, Number.isFinite(n) ? n : min));
 
-export function createGalaxyMotion({ track, runway, thumb, avatar, fill }: MotionElements, initial: number, clock: MotionClock = {}): GalaxyMotion {
+export function createGalaxyMotion({ track, runway, thumb, avatar, fill, starfield, wake, halo }: MotionElements, initial: number, clock: MotionClock = {}): GalaxyMotion {
   const view = track.ownerDocument.defaultView!;
   const raf = clock.raf ?? view.requestAnimationFrame.bind(view);
   const caf = clock.caf ?? view.cancelAnimationFrame.bind(view);
@@ -31,7 +32,7 @@ export function createGalaxyMotion({ track, runway, thumb, avatar, fill }: Motio
   let inputVelocity = 0, lean = 0, leanVelocity = 0, press = 0, pressVelocity = 0, energy = 0;
   let dragging = false, active = true, reduced = false, disposed = false;
   let frame: number | null = null, epoch = 0, lastFrame = 0, lastInput = now();
-  let paintedThumb = '', paintedFill = '', paintedReveal = '', paintedOpacity = '', paintedAvatar = '', paintedEnergy = '', paintedLean = '', paintedDrift = '';
+  let paintedThumb = '', paintedFill = '', paintedReveal = '', paintedOpacity = '', paintedAvatar = '', paintedEnergy = '', paintedDrift = '';
 
   function write() {
     if (disposed) return;
@@ -44,12 +45,19 @@ export function createGalaxyMotion({ track, runway, thumb, avatar, fill }: Motio
     // Only the gradient fill narrows. Pixel positions always use the full rail;
     // a separate clip reveals them, so low tiers never compress the constellation.
     if (fillWidth !== paintedFill) fill.style.width = paintedFill = fillWidth;
-    if (pixelReveal !== paintedReveal) track.style.setProperty('--dsg-pixel-reveal', paintedReveal = pixelReveal);
+    // Every per-frame variable is written to the element that consumes it, never to
+    // the rail: custom properties are registered non-inheriting, so a write on an
+    // ancestor would restyle all ~290 descendants and blow the frame budget.
+    if (pixelReveal !== paintedReveal) starfield.style.setProperty('--dsg-pixel-reveal', paintedReveal = pixelReveal);
     if (fillOpacity !== paintedOpacity) fill.style.opacity = paintedOpacity = fillOpacity;
     if (avatarTransform !== paintedAvatar) avatar.style.transform = paintedAvatar = avatarTransform;
-    if (paintedEnergy !== energy.toFixed(3)) track.style.setProperty('--dsg-energy', paintedEnergy = energy.toFixed(3));
-    if (paintedLean !== `${lean.toFixed(3)}deg`) track.style.setProperty('--dsg-lean', paintedLean = `${lean.toFixed(3)}deg`);
-    if (paintedDrift !== `${(-lean * 1.4).toFixed(3)}px`) track.style.setProperty('--dsg-drift', paintedDrift = `${(-lean * 1.4).toFixed(3)}px`);
+    const energyValue = energy.toFixed(3);
+    if (paintedEnergy !== energyValue) {
+      wake.style.setProperty('--dsg-energy', paintedEnergy = energyValue);
+      halo.style.setProperty('--dsg-energy', energyValue);
+    }
+    const drift = `${(-lean * 1.4).toFixed(3)}px`;
+    if (paintedDrift !== drift) wake.style.setProperty('--dsg-drift', paintedDrift = drift);
   }
   function requestFrame() {
     if (!disposed && active && !reduced && frame === null) {
@@ -99,7 +107,9 @@ export function createGalaxyMotion({ track, runway, thumb, avatar, fill }: Motio
     if (disposed) return;
     dragging = false; target = clamp(progress);
     velocity = clamp(inputVelocity, -.35, .35); inputVelocity = 0;
-    track.dataset.settling = String(!immediate && !reduced);
+    // Registered non-inheriting, so this stays a one-element restyle. It is the
+    // synchronous "committed target" signal the UI and tests read while the
+    // thumb is still springing.
     track.style.setProperty('--dsg-progress', String(target));
     if (immediate || reduced || !active) {
       position = target; velocity = lean = leanVelocity = press = pressVelocity = 0; write();
@@ -110,7 +120,7 @@ export function createGalaxyMotion({ track, runway, thumb, avatar, fill }: Motio
     beginDrag() {
       if (disposed) return;
       refreshBounds(); dragging = true; velocity = inputVelocity = 0; lastInput = now();
-      track.dataset.settling = 'false'; requestFrame();
+      requestFrame();
     },
     dragTo(progress) {
       if (disposed) return;
@@ -119,7 +129,9 @@ export function createGalaxyMotion({ track, runway, thumb, avatar, fill }: Motio
       const measured = clamp((next - position) / elapsed, -9, 9);
       inputVelocity += (measured - inputVelocity) * .38;
       position = target = next; lastInput = time;
-      track.style.setProperty('--dsg-progress', String(next)); write(); requestFrame();
+      // Registered non-inheriting: the rail restyles alone, never its descendants.
+      track.style.setProperty('--dsg-progress', String(next));
+      write(); requestFrame();
     },
     settle,
     cancel(progress) { inputVelocity = velocity = 0; settle(progress); },

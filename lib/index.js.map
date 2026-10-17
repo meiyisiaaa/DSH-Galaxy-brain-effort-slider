@@ -1,7 +1,7 @@
 {
   "version": 3,
   "sources": ["../src/index.ts"],
-  "sourcesContent": ["/** Host-side marker. UI packages must have a Loader entry for client discovery. */\nexport function apply(): void {}\n"],
+  "sourcesContent": ["/** Host-side marker. UI packages must have a Loader entry for client discovery. */\r\nexport function apply(): void {}\r\n"],
   "mappings": ";AACO,SAAS,QAAc;AAAC;",
   "names": []
 }
