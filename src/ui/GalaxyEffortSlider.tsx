@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -11,7 +12,7 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import type { GalaxyEffortSliderProps } from '../ui-contract';
-import bundledAvatar from '../assets/deepseek-whale-girl-atlas.png';
+import bundledAvatar from '../assets/deepseek-whale-girl-atlas.webp';
 import { createGalaxyMotion, type GalaxyMotion } from './galaxy-motion';
 import './GalaxyEffortSlider.css';
 
@@ -67,7 +68,16 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
   const [avatarFailed, setAvatarFailed] = useState(false);
   const [burst, setBurst] = useState(0);
   const [celebration, setCelebration] = useState<{ value: string; context: string } | null>(null);
-  const [position, setPosition] = useState<CSSProperties>({ visibility: 'hidden' });
+  // Every viewport scroll event recomputes geometry; most produce the identical box.
+  // Returning the previous object keeps React from re-rendering the whole panel.
+  const [position, setPositionRaw] = useState<CSSProperties>({ visibility: 'hidden' });
+  const setPosition = useCallback((next: CSSProperties) => {
+    setPositionRaw(previous => {
+      const keys = Object.keys(next) as (keyof CSSProperties)[];
+      const sameLength = keys.length === Object.keys(previous).length;
+      return sameLength && keys.every(key => previous[key] === next[key]) ? previous : next;
+    });
+  }, []);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -84,8 +94,13 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
   const pendingChoice = useRef<{ value: string; previous: string | undefined; context: string } | null>(null);
   const drag = useRef<{ id: number; lastX: number; context: string } | null>(null);
   const draftIndex = useRef<number | null>(null);
-  const committedIndex = options.findIndex(option => option.value === value);
-  const capabilityKey = JSON.stringify([modelLabel, options.map(option => [option.value, option.label])]);
+  const committedIndex = useMemo(() => options.findIndex(option => option.value === value), [options, value]);
+  // Cheap identity for "which capability set is this gesture about". A drag re-renders on
+  // every tier change, so the string build stays out of that path once options settle.
+  const capabilityKey = useMemo(
+    () => JSON.stringify([modelLabel, options.map(option => [option.value, option.label])]),
+    [modelLabel, options],
+  );
   const capabilityRef = useRef(capabilityKey);
   capabilityRef.current = capabilityKey;
   const busy = pending || localBusy;
@@ -93,7 +108,7 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
   const canChange = !disabled && options.length > 0 && !busy;
   const displayedIndex = previewIndex ?? committedIndex;
   const selected = options[displayedIndex];
-  const enabledOptions = options.filter(option => !isOff(option.value));
+  const enabledOptions = useMemo(() => options.filter(option => !isOff(option.value)), [options]);
   const visualLevel = clamp(enabledOptions.findIndex(option => option.value === selected?.value) / Math.max(1, enabledOptions.length - 1));
   const density = displayedIndex < 0 ? 'unknown' : isOff(selected?.value) ? 'off'
     : visualLevel === 1 ? 'max' : visualLevel > 0 ? 'high' : 'low';
@@ -108,7 +123,9 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
     ? (displayedIndex === options.length - 1 ? 2 : displayedIndex / (options.length - 1) < 0.5 ? 0 : 1)
     : 0;
   const avatarIsAtlas = props.avatarLayout === 'triptych' || !props.avatarSrc;
-  const denseLabels = options.length > 4 || options.some(option => [...option.label].reduce((width, char) => width + (char.charCodeAt(0) > 255 ? 2 : 1), 0) > 8);
+  // Full-width CJK glyphs count double; per-render charCode scanning is not worth repeating.
+  const denseLabels = useMemo(() => options.length > 4
+    || options.some(option => [...option.label].reduce((width, char) => width + (char.charCodeAt(0) > 255 ? 2 : 1), 0) > 8), [options]);
 
   const paintProgress = useCallback((progress: number, animate: boolean) => {
     if (!trackRef.current) return;
@@ -262,6 +279,15 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
       setPosition({ ...palette, position: 'fixed', left, top, width: panelWidth, maxHeight: height - 24, visibility: 'visible' });
     };
     reposition();
+    // Viewport scroll and resize arrive in bursts: one recompute per frame is
+    // enough, and it keeps getComputedStyle off the critical scroll path. The
+    // gesture cancel stays synchronous because stale geometry is the hazard.
+    let frame: number | null = null;
+    const scheduleReposition = () => {
+      if (frame !== null) return;
+      if (typeof window.requestAnimationFrame !== 'function') { reposition(); return; }
+      frame = window.requestAnimationFrame(() => { frame = null; reposition(); });
+    };
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reposition);
     if (popoverRef.current) observer?.observe(popoverRef.current);
     if (triggerRef.current) observer?.observe(triggerRef.current);
@@ -273,12 +299,13 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
     }
     const colorScheme = window.matchMedia?.('(prefers-color-scheme: dark)');
     colorScheme?.addEventListener('change', reposition);
-    const onViewportChange = () => { if (drag.current) cancelDrag(); reposition(); };
+    const onViewportChange = () => { if (drag.current) cancelDrag(); scheduleReposition(); };
     window.addEventListener('resize', onViewportChange);
     window.addEventListener('scroll', onViewportChange, true);
     window.visualViewport?.addEventListener('resize', onViewportChange);
     window.visualViewport?.addEventListener('scroll', onViewportChange);
     return () => {
+      if (frame !== null && typeof window.cancelAnimationFrame === 'function') window.cancelAnimationFrame(frame);
       observer?.disconnect();
       themeObserver?.disconnect();
       colorScheme?.removeEventListener('change', reposition);
