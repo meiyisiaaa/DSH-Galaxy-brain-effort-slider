@@ -12,7 +12,7 @@
 
 ### Native integration
 
-- Exact DeepSeek Harness `0.2.0-rc.2` engine and optional peer compatibility gate, checked against official commit `639ed015397290b3745d163aafe02ffee4aa3f84`.
+- DeepSeek Harness `^0.2.0-rc.2` engine and optional peer compatibility declaration, audited against official commit `639ed015397290b3745d163aafe02ffee4aa3f84` and bounded to the 0.2 line.
 - Shared native model directory, advertised effort IDs and names, and full `ModelDirectory.select` submission; no synthetic levels.
 - Host-authoritative state, interrupted-gesture cancellation, submission-time state checks, safe retries, and keyboard interaction.
 - Native lazy CommonJS client factory, Cordis-managed styles, embedded character artwork, and installable bundle patch.
@@ -26,6 +26,6 @@
 
 ### Known limits
 
-- Real DSH profile and Desktop installation remain unverified; other host versions are not supported by this release's compatibility declaration.
+- Real DSH profile and Desktop installation were verified against Desktop `0.2.1-rc.2` on 2026-10-19: the bundle installed, enabled, and registered its `conversation.input.left` occupant. Host versions outside `^0.2.0-rc.2` are not covered by this declaration.
 - Native selection also attempts to persist a new-session default asynchronously. Session-level success does not guarantee that persistence succeeded.
 - npm publication is tracked separately from this changelog; use registry installation only once the exact package version is available.

@@ -21,9 +21,9 @@
 
 ## 兼容版本
 
-插件 **0.1.4** 仅以 **DeepSeek Harness 0.2.0-rc.2** 为目标。已逐项核对官方标签 `dsh-v0.2.0-rc.2`、固定提交 `639ed015397290b3745d163aafe02ffee4aa3f84`（2026 年 9 月 29 日）的接口。
+插件 **0.1.4** 以 **DeepSeek Harness 0.2.0-rc.2** 及后续 0.2 线版本为目标。已逐项核对官方标签 `dsh-v0.2.0-rc.2`、固定提交 `639ed015397290b3745d163aafe02ffee4aa3f84`（2026 年 9 月 29 日）的接口。
 
-`engines.dsh` 与可选的 `@deepseek-ai/dsh` peer dependency 均精确固定为 `0.2.0-rc.2`。rc.2 宿主只读取 DSH peer 进行兼容检查，仅修改 `engines.dsh` 不够。将 peer 标为 optional，是为了避免包管理器自动安装另一套 DSH，不会绕过宿主检查。
+`engines.dsh` 与可选的 `@deepseek-ai/dsh` peer dependency 均声明 `^0.2.0-rc.2`。该范围接受已核对的 rc.2 基线与后续 0.2 线预发布/正式版本，排除 0.3.0 及更新版本——这些版本的接口尚未核对。将 peer 标为 optional，是为了避免包管理器自动安装另一套 DSH，不会绕过宿主检查。
 
 本地测试、模拟原生加载器和浏览器预览验收已通过。**尚未在真实 DSH profile 或 Desktop 分发包中验证安装。** 其他版本和第三方改版也未认证。详见[兼容说明与上游证据](docs/COMPATIBILITY.md)。
 
@@ -33,7 +33,7 @@
 
 ## 安装
 
-请先备份目标 profile 的 `package.json`、锁文件和 `cordis.patch.yml`，检查 `dsh --version`，并使用现有 **0.2.0-rc.2** 安装配套的 CLI。
+请先备份目标 profile 的 `package.json`、锁文件和 `cordis.patch.yml`，检查 `dsh --version`，并使用现有 **0.2** 安装配套的 CLI。
 
 ### 方式一：安装预构建包
 
@@ -82,7 +82,7 @@ dsh plugin --profile web add dsh-galaxy-effort-slider@0.1.4
 
 优先使用 **Plugins** 图形入口。官方 rc.2 的 macOS / Windows Desktop 菜单提供 **Manage dsh command**，用于配置配套 CLI（[发布说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.0-rc.2)）。
 
-需要 CLI 安装时，先打开 Desktop 一次完成 profile 初始化，确认配套 `dsh --version` 为 `0.2.0-rc.2`，然后完整退出 Desktop，再运行：
+需要 CLI 安装时，先打开 Desktop 一次完成 profile 初始化，确认 `dsh --version` 为 0.2 线版本（核对基线是 `0.2.0-rc.2`；真实安装验证用的是 `0.2.1-rc.2`），然后完整退出 Desktop，再运行：
 
 ```sh
 dsh plugin --profile desktop add "/绝对路径/dsh-galaxy-effort-slider-0.1.4.tgz"

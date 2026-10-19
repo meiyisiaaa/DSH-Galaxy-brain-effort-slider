@@ -29,9 +29,9 @@ npm publication is pending. Once `dsh-galaxy-effort-slider@0.1.4` is available i
 
 ## Compatibility and verification
 
-- Exact target: official `dsh-v0.2.0-rc.2`, commit `639ed015397290b3745d163aafe02ffee4aa3f84`.
-- 62 tests pass, with TypeScript validation, production build, and simulated native-loader checks.
-- Browser preview uses the actual adapter/UI with a simulated host. Real profile installation and Desktop distribution testing remain unverified.
+- Declared target: official `dsh-v0.2.0-rc.2`, commit `639ed015397290b3745d163aafe02ffee4aa3f84`, accepted across the `^0.2.0-rc.2` range (Desktop `0.2.1-rc.2` included; `0.3.0` and later excluded).
+- 65 tests pass, with TypeScript validation, production build, and simulated native-loader checks.
+- Browser preview uses the actual adapter/UI with a simulated host. The bundle was installed and enabled in a real Desktop profile on `0.2.1-rc.2`, where it registered its `conversation.input.left` occupant; other distributions remain unverified.
 - Selection uses native `ModelDirectory.select`. The host also tries to persist the full selection as a default for new sessions; successful session selection does not guarantee background persistence.
 
 Independent third-party project. No affiliation with or endorsement by DeepSeek. Licensed under [MIT](../LICENSE); the [upstream notice](UPSTREAM-LICENSE.txt) is retained.
@@ -65,9 +65,9 @@ npm 发布尚待完成。确认 registry 中已有 `dsh-galaxy-effort-slider@0.1
 
 ### 兼容与验收
 
-- 精确目标：官方 `dsh-v0.2.0-rc.2`，提交 `639ed015397290b3745d163aafe02ffee4aa3f84`。
-- 62 项测试通过，另通过 TypeScript 检查、生产构建和模拟原生加载器验收。
-- 浏览器预览使用真实适配器/UI 与模拟宿主；真实 profile 安装及 Desktop 分发包仍未验证。
+- 声明目标：官方 `dsh-v0.2.0-rc.2`，提交 `639ed015397290b3745d163aafe02ffee4aa3f84`，以 `^0.2.0-rc.2` 范围接受（含 Desktop `0.2.1-rc.2`；排除 `0.3.0` 及以后）。
+- 65 项测试通过，另通过 TypeScript 检查、生产构建和模拟原生加载器验收。
+- 浏览器预览使用真实适配器/UI 与模拟宿主。该 bundle 已在真实 Desktop profile（`0.2.1-rc.2`）中安装并启用，注册了 `conversation.input.left` 占用项；其他分发包仍未验证。
 - 选择通过原生 `ModelDirectory.select` 提交。宿主还会尝试将完整选择保存为新会话默认值；当前会话切换成功不代表后台持久化一定成功。
 
 独立第三方项目，与 DeepSeek 官方没有隶属或背书关系。采用 [MIT 许可证](../LICENSE)，并保留[上游许可证](UPSTREAM-LICENSE.txt)。

@@ -6,10 +6,12 @@ const manifest = JSON.parse(readFileSync('package.json', 'utf8'))
 const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'))
 const audit = JSON.parse(readFileSync('docs/UPSTREAM-RC2.json', 'utf8'))
 
-test('rc.2 uses an exact optional DSH peer gate as well as engines.dsh', () => {
-  // rc.2 plugin-compatibility.ts reads every DSH peer and ignores engines and peer metadata.
-  assert.equal(manifest.engines.dsh, '0.2.0-rc.2')
-  assert.deepEqual(manifest.peerDependencies, { '@deepseek-ai/dsh': '0.2.0-rc.2' })
+test('the rc.2 peer gate declares a bounded range instead of an exact pin', () => {
+  // rc.2 reads the DSH peer; 0.2.1-rc.2 reads engines.dsh first and skips peers when present.
+  // Declaring both keeps the gate honest on either host. The range stays inside the 0.2 line:
+  // 0.3.0 and later change surfaces this plugin has not audited.
+  assert.equal(manifest.engines.dsh, '^0.2.0-rc.2')
+  assert.deepEqual(manifest.peerDependencies, { '@deepseek-ai/dsh': '^0.2.0-rc.2' })
   assert.deepEqual(manifest.peerDependenciesMeta, { '@deepseek-ai/dsh': { optional: true } })
   assert.equal(manifest.dependencies, undefined, 'plugin must not pull in another Host runtime')
   assert.equal(manifest.optionalDependencies, undefined)
@@ -21,7 +23,8 @@ test('rc.2 release identity and local lock agree with the package', () => {
   assert.equal(manifest.version, '0.1.4')
   assert.equal(audit.tag, 'dsh-v0.2.0-rc.2')
   assert.equal(audit.commit, '639ed015397290b3745d163aafe02ffee4aa3f84')
-  assert.equal(audit.version, manifest.engines.dsh)
+  // The audited baseline is the floor of the declared range, not the whole range.
+  assert.equal(`^${audit.version}`, manifest.engines.dsh)
   assert.equal(audit.npm.name, '@deepseek-ai/dsh')
   assert.equal(audit.npm.version, audit.version)
   assert.equal(lock.version, manifest.version)

@@ -21,9 +21,9 @@ This is an independent third-party plugin, with no affiliation with or endorseme
 
 ## Compatibility
 
-Plugin **0.1.4** targets **DeepSeek Harness 0.2.0-rc.2** only. Its integration was checked against official tag `dsh-v0.2.0-rc.2`, commit `639ed015397290b3745d163aafe02ffee4aa3f84` (September 29, 2026).
+Plugin **0.1.4** targets **DeepSeek Harness 0.2.0-rc.2** and later 0.2-line releases. Its integration was checked against official tag `dsh-v0.2.0-rc.2`, commit `639ed015397290b3745d163aafe02ffee4aa3f84` (September 29, 2026).
 
-Both `engines.dsh` and the optional `@deepseek-ai/dsh` peer dependency are pinned to `0.2.0-rc.2`. The rc.2 host checks the peer dependency, so changing only `engines.dsh` is insufficient. Making the peer optional prevents package managers from automatically installing another DSH copy; it does not bypass the host's compatibility check.
+Both `engines.dsh` and the optional `@deepseek-ai/dsh` peer dependency declare `^0.2.0-rc.2`. That range admits the audited rc.2 baseline and later 0.2-line prereleases and releases, while excluding 0.3.0 and anything newer, whose surfaces this plugin has not audited. Making the peer optional prevents package managers from automatically installing another DSH copy; it does not bypass the host's compatibility check.
 
 Local tests, a simulated native loader, and browser-preview checks have passed. **Installation in a real DSH profile or Desktop distribution has not yet been verified.** Other versions and third-party builds are unverified. See [compatibility details and upstream evidence](docs/COMPATIBILITY.md).
 
@@ -33,7 +33,7 @@ The slider calls native `ModelDirectory.select` with the full provider/model/eff
 
 ## Installation
 
-Back up the target profile's `package.json`, lockfile, and `cordis.patch.yml`. Check `dsh --version`, and use the CLI supplied with your existing **0.2.0-rc.2** installation.
+Back up the target profile's `package.json`, lockfile, and `cordis.patch.yml`. Check `dsh --version`, and use the CLI supplied with your existing **0.2** installation.
 
 ### Option A: install a prebuilt package
 
@@ -82,7 +82,7 @@ In the graphical flow, enter `dsh-galaxy-effort-slider@0.1.4` instead of the tar
 
 Prefer the **Plugins** interface. Official rc.2 Desktop for macOS/Windows provides **Manage dsh command** to set up its matching CLI ([release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.0-rc.2)).
 
-For CLI installation, open Desktop once to initialize its profile, confirm the matching `dsh --version` is `0.2.0-rc.2`, and fully quit Desktop before running:
+For CLI installation, open Desktop once to initialize its profile, confirm `dsh --version` reports a 0.2-line version (the verified baseline is `0.2.0-rc.2`; `0.2.1-rc.2` was used for the real-install check), and fully quit Desktop before running:
 
 ```sh
 dsh plugin --profile desktop add "/absolute/path/dsh-galaxy-effort-slider-0.1.4.tgz"
