@@ -1,6 +1,4 @@
-/* Per-frame values are registered non-inheriting and written straight onto the
-   element that consumes them. Writing them on an ancestor would re-style all
-   ~290 descendants of the rail on every frame instead of a single node. */
+/* Per-frame properties stay local to their consumers. */
 @property --dsg-progress { syntax: "<number>"; inherits: false; initial-value: 0; }
 @property --dsg-pixel-reveal { syntax: "<length>"; inherits: false; initial-value: 0px; }
 @property --dsg-energy { syntax: "<number>"; inherits: false; initial-value: 0; }
@@ -55,26 +53,15 @@
 .dsg-starfield { position: absolute; inset: 0; overflow: hidden; border-radius: 6px; pointer-events: none; clip-path: inset(0 max(0px, calc(100% - max(24px, var(--dsg-pixel-reveal, 0px)))) 0 0); opacity: 1; transition: opacity 240ms ease; }
 .dsg-track:is([data-density="off"], [data-density="unknown"]) .dsg-starfield { opacity: 0; }
 .dsg-track[data-density="off"] .dsg-galaxy-fill { visibility: hidden; }
-/* Two identical half-width cells loop without a reset seam. Only these two
+/* Each canvas draws two identical half-width cells without a reset seam. Only these two
    strips translate; square pixels keep their native size and twinkle separately. */
 .dsg-pixel-stream { position: absolute; z-index: 1; top: 0; left: 0; width: 200%; height: 100%; pointer-events: none; animation: dsg-pixel-flow 18s linear infinite; animation-play-state: running; will-change: transform; }
-.dsg-pixel-cell { position: absolute; top: 0; left: 0; width: 50%; height: 100%; overflow: hidden; }
-.dsg-pixel-cell + .dsg-pixel-cell { left: 50%; }
 .dsg-pixel-group { position: absolute; inset: 0; opacity: .82; transition: opacity 280ms ease; }
 .dsg-pixel-group[data-depth="1"] { opacity: var(--dsg-middle-alpha, 0); }
 .dsg-pixel-group[data-depth="2"] { opacity: var(--dsg-nebula-alpha, 0); }
-.dsg-pixel-cell i, .dsg-pixel-wake i { position: absolute; width: 3px; height: 3px; opacity: .72; animation: dsg-pixel-twinkle 2.1s ease-in-out infinite; animation-play-state: running; }
-/* Measured at 4x CPU throttle, one drag of 90 steps: 244 animating pixels cost
-   ~3.2 s of style recalc and pin p95 frame time at 66.7 ms, because opacity is
-   not a composited property on these 2-3 px elements and every one of them is
-   restyled on every frame. Animating one pixel in four measures as p50/p95
-   16.7 ms with a quarter of the recalc, and at this size the field still reads
-   as a static-sparkle galaxy rather than a strobe. */
-.dsg-pixel-cell i:not(:nth-child(4n + 1)), .dsg-pixel-wake i:not(:nth-child(4n + 1)) { animation: none; opacity: .58; }
-.dsg-pixel-background .dsg-pixel-cell i:nth-child(5n) { width: 2px; height: 2px; }
+.dsg-pixels { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.dsg-pixel-wake .dsg-pixels { width: calc(100% + 3px); height: calc(100% + 3px); }
 .dsg-pixel-foreground { z-index: 2; opacity: var(--dsg-foreground-alpha, 0); animation-duration: 11s; animation-delay: -3.8s; transition: opacity 280ms ease; }
-.dsg-pixel-foreground i, .dsg-pixel-wake i { width: 2px; height: 2px; }
-.dsg-pixel-foreground i:nth-child(3n) { width: 3px; height: 3px; }
 .dsg-ticks { position: absolute; z-index: 3; inset: 0 2px; color: #9b849b; opacity: .7; overflow: hidden; }
 .dsg-ticks i { position: absolute; top: 2px; font-family: inherit; font-size: 14px; font-style: normal; line-height: 23px; transform: translateX(-50%); }
 .dsg .dsg-track:focus-visible { outline: none; }
@@ -126,7 +113,6 @@
 .dsg[data-paused="true"] *, .dsg[data-paused="true"] *::before, .dsg[data-paused="true"] *::after { animation-play-state: paused !important; }
 @keyframes dsg-enter { from { opacity: 0; translate: 0 4px; } to { opacity: 1; translate: 0 0; } }
 @keyframes dsg-pixel-flow { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
-@keyframes dsg-pixel-twinkle { 0%, 100% { opacity: .18; } 42% { opacity: 1; } 72% { opacity: .46; } }
 @keyframes dsg-spin { to { transform: rotate(360deg); } }
 @keyframes dsg-bloom { from { opacity: .9; transform: scale(.65); } to { opacity: 0; transform: scale(1.4); } }
 @keyframes dsg-burst { from { opacity: 1; transform: rotate(var(--dsg-ray)) translateY(15px) scale(1); } to { opacity: 0; transform: rotate(var(--dsg-ray)) translateY(42px) scale(.35); } }

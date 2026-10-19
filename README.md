@@ -10,7 +10,7 @@ A native reasoning-effort picker with a flowing pixel nebula and an original chi
 
 ## Highlights
 
-- **A living pixel galaxy.** Seamless star flow, independently twinkling pixels, and progressively richer layers as the selected effort increases. An advertised `off` or `none` level keeps the rail clear. One star in four carries the twinkle, which measured 3.4x less style recalculation and a 16.7 ms p95 frame time during a drag.
+- **A living pixel galaxy.** Seamless star flow, independently twinkling pixels, and progressively richer layers as the selected effort increases. An advertised `off` or `none` level keeps the rail clear. One star in four carries the twinkle.
 - **A responsive character.** The original three-expression whale girl follows the pointer, leans into the drag, and settles onto the chosen level with a damped spring.
 - **Real model capabilities.** Levels and labels come directly from the selected provider/model's `reasoning.efforts`. No invented levels or `max`/`xhigh` remapping. Every advertised level stays on the rail; five or more stagger across two rows rather than reflowing away from the positions they describe.
 - **One source of truth.** Native menu changes appear in the slider. Failed submissions keep the host's actual value and show a retryable error.

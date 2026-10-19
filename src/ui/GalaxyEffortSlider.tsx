@@ -19,38 +19,15 @@ import './GalaxyEffortSlider.css';
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const progressFor = (index: number, count: number) => count > 1 && index >= 0 ? index / (count - 1) : 0.5;
 const isOff = (value: string | undefined) => value === 'off' || value === 'none';
-// Motion Atlas positions/palette. Negative, varied phases make independent stars
-// visibly twinkle from first paint; both seamless copies share those exact phases.
-const referencePixels = Array.from({ length: 110 }, (_, index) => ({
-  left: `${index * 37 % 100}%`, top: `${index * 19 % 100}%`,
-  background: ['#bd86ff', '#79dcfc', '#fe9acf'][index % 3],
-  animationDelay: `${-((index * 23) % 41) * .1}s`,
-  animationDuration: `${1.5 + (index * 7 % 16) * .1}s`,
-}));
-const referencePixelGroups = [
-  referencePixels.filter((_, index) => index % 5 === 0),
-  referencePixels.filter((_, index) => index % 5 !== 0 && index % 3 === 0),
-  referencePixels.filter((_, index) => index % 5 !== 0 && index % 3 !== 0),
-];
-const foregroundPixels = Array.from({ length: 12 }, (_, index) => ({
-  left: `${(index * 29 + 8) % 100}%`, top: `${(index * 17 + 11) % 100}%`,
-  background: ['#d4b2ff', '#b0ecff', '#ffc3e5'][index % 3],
-  animationDelay: `${-((index * 13) % 29) * .1}s`,
-  animationDuration: `${1.6 + (index * 3 % 12) * .1}s`,
-}));
 // Built once: a drag re-renders on every tier change, and a stable element keeps
 // React from diffing the whole starfield subtree each time.
 const backgroundPixels = (
-  <span className="dsg-pixel-stream dsg-pixel-background">{[0, 1].map(copy =>
-    <span key={copy} className="dsg-pixel-cell">{referencePixelGroups.map((group, depth) =>
-      <span key={depth} className="dsg-pixel-group" data-depth={depth}>{group.map((style, index) => <i key={index} style={style}/>)}</span>
-    )}</span>
+  <span className="dsg-pixel-stream dsg-pixel-background">{[0, 1, 2].map(depth =>
+    <span key={depth} className="dsg-pixel-group" data-depth={depth}><canvas className="dsg-pixels" data-pixels={depth}/></span>
   )}</span>
 );
 const foregroundStream = (
-  <span className="dsg-pixel-stream dsg-pixel-foreground">{[0, 1].map(copy =>
-    <span key={copy} className="dsg-pixel-cell">{foregroundPixels.map((style, index) => <i key={index} style={style}/>)}</span>
-  )}</span>
+  <span className="dsg-pixel-stream dsg-pixel-foreground"><canvas className="dsg-pixels" data-pixels="3"/></span>
 );
 
 /** A controlled capability picker. Only the host's advertised options can be committed. */
@@ -212,6 +189,7 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
     };
   }, [open, options.length > 0, cancelDrag]);
   useLayoutEffect(() => { motionRef.current?.setActive(pageVisible && anchorVisible && railVisible.current); }, [open, pageVisible, anchorVisible, options.length > 0]);
+  useLayoutEffect(() => { motionRef.current?.setPixelsVisible(density !== 'off' && density !== 'unknown'); }, [open, density]);
 
   // A host model or value change is authoritative, even halfway through a gesture.
   useLayoutEffect(() => {
@@ -285,8 +263,8 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
     let frame: number | null = null;
     const scheduleReposition = () => {
       if (frame !== null) return;
-      if (typeof window.requestAnimationFrame !== 'function') { reposition(); return; }
-      frame = window.requestAnimationFrame(() => { frame = null; reposition(); });
+      if (typeof window.requestAnimationFrame !== 'function') { reposition(); motionRef.current?.refreshBounds(); return; }
+      frame = window.requestAnimationFrame(() => { frame = null; reposition(); motionRef.current?.refreshBounds(); });
     };
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reposition);
     if (popoverRef.current) observer?.observe(popoverRef.current);
@@ -483,7 +461,7 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
                 <div className="dsg-ticks">{options.map((option, index) => <i key={option.value} style={{ left: `${progressFor(index, options.length) * 100}%` }}>{index === displayedIndex ? '│' : '·'}</i>)}</div>
               </div>
               <div className="dsg-thumb" aria-hidden="true">
-                <span className="dsg-pixel-wake">{foregroundPixels.map((style, index) => <i key={index} style={style}/>)}</span>
+                <span className="dsg-pixel-wake"><canvas className="dsg-pixels" data-pixels="4"/></span>
                 <span className="dsg-thumb-halo"/>
                 <span className="dsg-avatar">
                   {avatarSrc && !avatarFailed ? avatarIsAtlas ? <>

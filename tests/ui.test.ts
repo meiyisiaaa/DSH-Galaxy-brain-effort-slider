@@ -49,6 +49,9 @@ beforeEach(() => {
   dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', { pretendToBeVisual: true });
   Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
   const captured = new WeakMap<Element, number>();
+  const canvasContext = {
+    clearRect() {}, fillRect() {}, setTransform() {}, globalAlpha: 1, fillStyle: '#000',
+  } as unknown as CanvasRenderingContext2D;
   Object.assign(dom.window.HTMLElement.prototype, {
     setPointerCapture(this: Element, id: number) { captured.set(this, id); },
     hasPointerCapture(this: Element, id: number) { return captured.get(this) === id; },
@@ -59,6 +62,7 @@ beforeEach(() => {
         : { left: 30, right: 398, top: 500, bottom: 544, width: 368, height: 44, x: 30, y: 500, toJSON() {} };
     },
   });
+  Object.assign(dom.window.HTMLCanvasElement.prototype, { getContext: () => canvasContext });
   container = dom.window.document.getElementById('root') as HTMLDivElement;
   root = createRoot(container);
   calls = [];
@@ -75,32 +79,22 @@ test('renders only host-provided options and approved three-frame avatar', () =>
   assert.equal(selector('.dsg-option[aria-pressed="true"]').textContent, 'Low');
   assert.equal(selector('.dsg-track').getAttribute('aria-valuenow'), '0');
   assert.equal(selector('.dsg-track').getAttribute('aria-valuetext'), 'Low');
-  assert.equal(document.querySelectorAll('.dsg-pixel-background .dsg-pixel-cell:first-child i').length, 110);
-  assert.equal(document.querySelectorAll('.dsg-pixel-foreground .dsg-pixel-cell:first-child i').length, 12);
-  assert.equal(document.querySelector('canvas'), null);
-  assert.equal(selector('.dsg-pixel-background [data-depth="2"] i').style.left, '37%');
-  assert.equal(selector('.dsg-pixel-background [data-depth="2"] i').style.top, '19%');
 });
 
-test('seamless pixel strips have bounded identical cells and asynchronous twinkle phases', () => {
+test('two pixel flow streams retain three depth layers and canvas surfaces', () => {
   open();
   assert.equal(document.querySelectorAll('.dsg-pixel-stream').length, 2);
-  assert.equal(document.querySelectorAll('.dsg-pixel-stream i').length, 244);
-  for (const stream of document.querySelectorAll('.dsg-pixel-stream')) {
-    assert.equal(stream.children.length, 2);
-    assert.equal(stream.children[0].innerHTML, stream.children[1].innerHTML, 'duplicate must have exactly matching positions and twinkle phases');
-    const pixels = [...stream.children[0].querySelectorAll('i')];
-    assert.ok(new Set(pixels.map(pixel => pixel.style.animationDelay)).size > 8);
-    for (const pixel of pixels) {
-      assert.ok(parseFloat(pixel.style.animationDelay) <= 0);
-      assert.ok(parseFloat(pixel.style.animationDuration) >= 1.5 && parseFloat(pixel.style.animationDuration) <= 3);
-    }
-  }
-  assert.match(sliderCSS, /\.dsg-pixel-cell\s*\{[^}]*width: 50%;[^}]*overflow: hidden;/);
+  assert.equal(document.querySelectorAll('.dsg-pixels').length, 5);
+  const depths = [...document.querySelectorAll('.dsg-pixel-background > .dsg-pixel-group')];
+  assert.deepEqual(depths.map(group => group.dataset.depth), ['0', '1', '2']);
+  assert.deepEqual(depths.map(group => group.querySelector('canvas')?.dataset.pixels), ['0', '1', '2']);
+  assert.equal(selector('.dsg-pixel-foreground canvas')?.getAttribute('data-pixels'), '3');
+  assert.equal(document.querySelector('.dsg-pixel-wake canvas')?.getAttribute('data-pixels'), '4');
+  assert.match(sliderCSS, /\.dsg-pixel-stream\s*\{[^}]*width: 200%;/);
   assert.match(sliderCSS, /@keyframes dsg-pixel-flow[^\n]*translate3d\(-50%, 0, 0\)/);
 });
 
-test('idle Max keeps CSS flow and twinkle running after the thumb RAF stops', () => {
+test('idle visible pixels and CSS flows share one animation frame loop', () => {
   loadStyles();
   const frames = new Map<number, FrameRequestCallback>();
   let nextId = 0;
@@ -111,8 +105,8 @@ test('idle Max keeps CSS flow and twinkle running after the thumb RAF stops', ()
   for (let i = 0; i < 10; i += 1) {
     const queued = [...frames.values()]; frames.clear();
     act(() => { for (const callback of queued) callback(100 + i * 16.67); });
+    assert.equal(frames.size, 1);
   }
-  assert.equal(frames.size, 0);
   assert.equal(track.dataset.peak, 'true');
   assert.equal(track.dataset.motionActive, 'true');
   assert.equal(selector('.dsg-panel').dataset.paused, 'false');
@@ -120,31 +114,63 @@ test('idle Max keeps CSS flow and twinkle running after the thumb RAF stops', ()
   for (const stream of document.querySelectorAll('.dsg-pixel-stream')) {
     assert.equal(window.getComputedStyle(stream).animationPlayState, 'running');
     assert.match(window.getComputedStyle(stream).animation, /dsg-pixel-flow.*linear.*infinite/);
-    assert.equal(window.getComputedStyle(stream.querySelector('i')!).animationPlayState, 'running');
+    assert.ok(stream.querySelector('canvas.dsg-pixels'));
   }
   key(track, 'Escape');
   assert.equal(document.querySelector('.dsg-pixel-stream'), null);
   assert.equal(frames.size, 0);
 });
 
-test('hidden page pauses both CSS strips and twinkles, then resumes them while visible', () => {
+test('hidden page stops the shared frame loop and pauses CSS flows, then resumes', () => {
   loadStyles();
+  const frames = new Map<number, FrameRequestCallback>();
+  let nextId = 0;
+  window.requestAnimationFrame = callback => { frames.set(++nextId, callback); return nextId; };
+  window.cancelAnimationFrame = id => { frames.delete(id); };
   render({ value: 'max' });
   const track = open();
   for (const hidden of [true, false]) {
     Object.defineProperty(document, 'hidden', { configurable: true, value: hidden });
     act(() => document.dispatchEvent(new dom.window.Event('visibilitychange')));
     assert.equal(track.dataset.motionActive, String(!hidden));
-    for (const element of document.querySelectorAll('.dsg-pixel-stream, .dsg-pixel-stream i')) {
-      assert.equal(window.getComputedStyle(element).animationPlayState, hidden ? 'paused' : 'running');
+    assert.equal(frames.size, hidden ? 0 : 1);
+    for (const stream of document.querySelectorAll('.dsg-pixel-stream')) {
+      assert.equal(window.getComputedStyle(stream).animationPlayState, hidden ? 'paused' : 'running');
+      assert.ok(stream.querySelector('canvas.dsg-pixels'));
     }
   }
 });
 
-test('reduced motion explicitly disables the CSS animation rather than only the thumb loop', () => {
+test('reduced motion stops canvas animation and retains the static CSS field', () => {
+  const frames = new Map<number, FrameRequestCallback>();
+  let nextId = 0, matches = false;
+  const queryListeners = new Map<string, Set<() => void>>();
+  window.requestAnimationFrame = callback => { frames.set(++nextId, callback); return nextId; };
+  window.cancelAnimationFrame = id => { frames.delete(id); };
+  Object.defineProperty(window, 'matchMedia', { configurable: true, value: (query: string) => {
+    const listeners = queryListeners.get(query) ?? new Set<() => void>();
+    queryListeners.set(query, listeners);
+    return {
+      get matches() { return query === '(prefers-reduced-motion: reduce)' && matches; },
+      addEventListener: (_type: string, listener: () => void) => { listeners.add(listener); },
+      removeEventListener: (_type: string, listener: () => void) => { listeners.delete(listener); },
+    } as unknown as MediaQueryList;
+  } });
+  const notifyMotion = () => { for (const listener of queryListeners.get('(prefers-reduced-motion: reduce)') ?? []) listener(); };
+  const track = open();
+  assert.equal(frames.size, 1);
+  matches = true;
+  notifyMotion();
+  assert.equal(frames.size, 0);
+  assert.ok(document.querySelector('.dsg-pixel-stream canvas'));
+  matches = false;
+  notifyMotion();
+  assert.equal(frames.size, 1);
   assert.match(sliderCSS, /@media \(prefers-reduced-motion: reduce\)[^\n]*animation: none !important/);
   assert.match(sliderCSS, /\.dsg-track\[data-motion-active="false"\] \*\s*\{ animation-play-state: paused !important;/);
   assert.doesNotMatch(sliderCSS, /data-dragging[^\n]*animation-play-state/);
+  key(track, 'Escape');
+  assert.equal(frames.size, 0);
 });
 
 test('pixel geometry belongs to the full rail and remains unchanged across effort reveals', () => {
@@ -153,14 +179,13 @@ test('pixel geometry belongs to the full rail and remains unchanged across effor
   assert.equal(field.parentElement, selector('.dsg-track-bed'));
   assert.equal(field.closest('.dsg-galaxy-fill'), null);
   assert.equal(selector('.dsg-galaxy-fill').childElementCount, 0);
-  const original = field.innerHTML;
+  const original = [...field.querySelectorAll('canvas')];
   pointer(track, 'pointerdown', 130);
   assert.equal(field.style.getPropertyValue('--dsg-pixel-reveal'), '30.000px');
   pointer(track, 'pointermove', 370);
   assert.equal(field.style.getPropertyValue('--dsg-pixel-reveal'), '270.000px');
-  assert.equal(field.innerHTML, original);
-  // The reveal lives on the starfield itself (its only consumer) so a frame never
-  // restyles the ~290 descendants of the rail; the pixel DOM stays untouched.
+  assert.deepEqual([...field.querySelectorAll('canvas')], original);
+  // The reveal clips the starfield; the canvas surfaces retain their rail-sized layout.
   assert.equal(track.style.getPropertyValue('--dsg-pixel-reveal'), '');
   assert.match(sliderCSS, /\.dsg-starfield\s*\{[^}]*inset: 0;[^}]*clip-path: inset/);
   assert.match(sliderCSS, /max\(24px, var\(--dsg-pixel-reveal, 0px\)\)/);
@@ -179,7 +204,7 @@ test('actual Off is clean, enabled Low sparse, and High/Max add graduated star l
   assert.equal(track.dataset.density, 'low');
   assert.equal(track.style.getPropertyValue('--dsg-middle-alpha'), '0');
   assert.equal(track.style.getPropertyValue('--dsg-nebula-alpha'), '0');
-  assert.equal(document.querySelectorAll('.dsg-pixel-background .dsg-pixel-cell:first-child [data-depth="0"] i').length, 22);
+  assert.equal(document.querySelectorAll('.dsg-pixel-background > [data-depth="0"] canvas').length, 1);
   assert.equal(window.getComputedStyle(selector('.dsg-pixel-stream')).animationPlayState, 'running');
   render({ value: 'high' });
   assert.equal(track.dataset.density, 'high');
@@ -396,29 +421,6 @@ test('a dense rail staggers tiers instead of reflowing them off their positions'
   assert.equal(window.getComputedStyle(selector('.dsg-option-label')).textOverflow, 'ellipsis');
 });
 
-test('only one pixel in four twinkles so a drag keeps its frame budget', () => {
-  loadStyles();
-  open();
-  const pixels = [...document.querySelectorAll<HTMLElement>('.dsg-pixel-stream i')];
-  assert.equal(pixels.length, 244);
-  // The rule keys on :nth-child, so the phase is counted inside each pixel group
-  // (22, 29 and 59 stars) and each wake, not across the flattened star field.
-  let animated = 0;
-  for (const pixel of pixels) {
-    const siblings = [...pixel.parentElement!.children];
-    const shouldAnimate = siblings.indexOf(pixel) % 4 === 0;
-    const animates = window.getComputedStyle(pixel).animation !== 'none';
-    assert.equal(animates, shouldAnimate, `pixel ${siblings.indexOf(pixel)} of ${siblings.length}`);
-    if (animates) animated += 1;
-  }
-  // Measured: 244 animating pixels pin p95 at 66.7ms during a drag at 4x throttle;
-  // this 67-pixel set measures 16.7ms with the same star field.
-  assert.equal(animated, 64);
-  assert.equal(window.getComputedStyle(pixels[1]!).opacity, '0.58');
-  assert.equal(window.getComputedStyle(pixels[0]!).opacity, '0.72');
-  assert.match(sliderCSS, /\.dsg-pixel-cell i:not\(:nth-child\(4n \+ 1\)\)[^{]*\{[^}]*animation: none/);
-});
-
 test('failed custom image uses the neutral star fallback', () => {
   render({ avatarSrc: 'https://invalid.example/avatar.png', avatarLayout: 'single' });
   open();
@@ -510,22 +512,39 @@ test('viewport scroll cancels a captured gesture instead of using stale geometry
   assert.equal(track.getAttribute('aria-valuetext'), 'Low');
 });
 
-test('animation frames update presentation without rerendering React', () => {
+test('pointer moves render only when the preview tier changes and commit on release', async () => {
   const frames = new Map<number, FrameRequestCallback>();
   let nextId = 0, renders = 0;
+  const job = deferred();
   window.requestAnimationFrame = callback => { frames.set(++nextId, callback); return nextId; };
   window.cancelAnimationFrame = id => { frames.delete(id); };
+  current = { ...current, onCommit: value => { calls.push(value); return job.promise; } };
   act(() => root.render(React.createElement(React.Profiler, { id: 'slider', onRender: () => { renders += 1; } }, React.createElement(GalaxyEffortSlider, current))));
   const track = open();
-  pointer(track, 'pointerdown', 180);
-  const count = renders;
-  for (let i = 0; i < 90; i += 1) {
-    const pendingFrames = [...frames.values()];
-    frames.clear();
-    act(() => { for (const callback of pendingFrames) callback(100 + i * 16.67); });
-  }
+  pointer(track, 'pointerdown', 110);
+  let count = renders;
+  pointer(track, 'pointermove', 120);
+  pointer(track, 'pointermove', 174);
   assert.equal(renders, count);
-  assert.ok(frames.size <= 1);
+  assert.deepEqual(calls, []);
+
+  pointer(track, 'pointermove', 176);
+  assert.equal(renders, count + 1);
+  assert.equal(track.getAttribute('aria-valuenow'), '1');
+  assert.equal(track.getAttribute('aria-valuetext'), 'High');
+  count = renders;
+  pointer(track, 'pointermove', 324);
+  assert.equal(renders, count);
+  pointer(track, 'pointermove', 326);
+  assert.equal(renders, count + 1);
+  assert.equal(track.getAttribute('aria-valuenow'), '2');
+  assert.equal(track.getAttribute('aria-valuetext'), 'Max');
+  assert.deepEqual(calls, []);
+  assert.equal(frames.size, 1);
+
+  pointer(track, 'pointerup', 326);
+  assert.deepEqual(calls, ['max']);
+  await act(async () => job.resolve());
   key(track, 'Escape');
   assert.equal(frames.size, 0);
 });
@@ -567,11 +586,11 @@ test('rail visibility stops and restarts exactly one animation loop', () => {
     act(() => observer.callback([{ isIntersecting: false } as IntersectionObserverEntry], {} as IntersectionObserver));
     assert.equal(frames.size, 0);
     assert.equal(window.getComputedStyle(selector('.dsg-pixel-stream')).animationPlayState, 'paused');
-    assert.equal(window.getComputedStyle(selector('.dsg-pixel-stream i')).animationPlayState, 'paused');
+    assert.ok(selector('.dsg-pixel-stream canvas.dsg-pixels'));
     act(() => observer.callback([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver));
     assert.equal(frames.size, 1);
     assert.equal(window.getComputedStyle(selector('.dsg-pixel-stream')).animationPlayState, 'running');
-    assert.equal(window.getComputedStyle(selector('.dsg-pixel-stream i')).animationPlayState, 'running');
+    assert.ok(selector('.dsg-pixel-stream canvas.dsg-pixels'));
     act(() => observer.callback([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver));
     assert.equal(frames.size, 1);
     key(selector('.dsg-track'), 'Escape');

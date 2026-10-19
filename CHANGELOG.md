@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Smoother dragging with batched starfield drawing, preserving pixel counts, independent twinkle phases, flow, glow and character motion. Hidden, offscreen and reduced-motion controls stop the shared animation loop.
+
 ## 0.1.4 — 2026-10-17
 
 ### Visuals and interaction
