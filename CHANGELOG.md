@@ -19,7 +19,7 @@
 
 ### Verification and documentation
 
-- 63 passing regression tests covering capability/selection behavior, rc.2 compatibility, UI interaction, and motion.
+- 65 passing regression tests covering capability/selection behavior, rc.2 compatibility, UI interaction, and motion.
 - TypeScript validation, production build, and simulated native-loader checks.
 - Read-only manifest of 20 audited upstream file hashes.
 - English and Simplified Chinese READMEs, profile-specific GUI/CLI installation instructions, and release notes.

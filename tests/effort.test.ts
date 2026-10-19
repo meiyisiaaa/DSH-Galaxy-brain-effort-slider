@@ -93,3 +93,12 @@ test('catalog failure is distinct from loading and directs native retry', () => 
   assert.match(view.disabledReason!, /失败.*重试/)
   assert.equal(view.error, 'network failure')
 })
+test('failed session open is reported as a failure, not as "connecting"', () => {
+  const failed = deriveEffortView(idle, { ...session, openState: 'error' })
+  assert.match(failed.disabledReason!, /失败/)
+  assert.doesNotMatch(failed.disabledReason!, /正在连接会话/)
+})
+test('in-flight session open still reads as connecting', () => {
+  assert.match(deriveEffortView(idle, { ...session, openState: 'loading' }).disabledReason!, /正在连接会话/)
+  assert.match(deriveEffortView(idle, { ...session, openState: 'cold' }).disabledReason!, /正在连接会话/)
+})

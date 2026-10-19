@@ -131,7 +131,7 @@ npm run test:bundle
 npm pack --ignore-scripts
 ```
 
-`npm run check` 包含 TypeScript 检查、全部单元/UI/动效测试、生产构建和模拟原生加载器验收。v0.1.4 发布源码线现为 **63 项测试通过**。这些检查不能替代真实客户端安装测试。
+`npm run check` 包含 TypeScript 检查、全部单元/UI/动效测试、生产构建和模拟原生加载器验收。v0.1.4 发布源码线现为 **65 项测试通过**。这些检查不能替代真实客户端安装测试。
 
 浏览器产物是通过 `window.__ModuleLoader__` 注册的惰性 CommonJS 工厂，不是可直接放进任意 HTML 的 ESM 脚本。React、React DOM 与 JSX runtime 保持外部引用，复用宿主实例。角色图片以内嵌 data URL 打包；CSS 通过 Cordis 生命周期挂载和移除。
 

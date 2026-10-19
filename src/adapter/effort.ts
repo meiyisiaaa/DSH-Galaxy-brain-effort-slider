@@ -26,6 +26,9 @@ export function deriveEffortView(state: ModelDirectoryState, session: SessionSna
   let disabledReason: string | undefined
   if (!available || session.subagent !== null) disabledReason = '子代理会话不支持独立切换推理档位'
   else if (session.removed) disabledReason = '该会话已移除'
+  // The host separates a failed open from an in-flight one: 'error' only clears
+  // through a session switch or reconnect, so it must not read as "connecting".
+  else if (session.openState === 'error') disabledReason = '会话加载失败，请切换会话后重试'
   else if (session.openState !== 'open') disabledReason = '正在连接会话'
   else if (session.running || session.awaitingFirstTurn || session.pendingSubmissions.length > 0) disabledReason = '任务进行中，结束后可切换档位'
   else if (pending) disabledReason = '正在保存推理档位'

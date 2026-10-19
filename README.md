@@ -131,7 +131,7 @@ npm run test:bundle
 npm pack --ignore-scripts
 ```
 
-`npm run check` runs TypeScript checks, all unit/UI/motion tests, the production build, and simulated native-loader checks. The v0.1.4 released source line now has **63 passing tests**. These checks do not replace installation testing in a real client.
+`npm run check` runs TypeScript checks, all unit/UI/motion tests, the production build, and simulated native-loader checks. The v0.1.4 released source line now has **65 passing tests**. These checks do not replace installation testing in a real client.
 
 The browser artifact is a lazy CommonJS factory registered through `window.__ModuleLoader__`, not a standalone ESM script. React, React DOM, and the JSX runtime stay external to reuse the host's copies. The character image is embedded as a data URL; styles are added and removed through the Cordis lifecycle.
 
