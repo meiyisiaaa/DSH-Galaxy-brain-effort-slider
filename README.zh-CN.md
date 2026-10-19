@@ -4,16 +4,16 @@
 
 把流动的像素星云和原创 Q 版鲸鱼女孩放进输入栏。插件启用时占据宿主原生的模型与推理力度组合选择器位置，复用与 `/model` 共用的原生模型目录和选择接口。
 
-![银河推理滑块的独立本地预览](docs/images/preview.jpg)
+![银河滑块在模拟宿主中替换原生模型选择器的效果](docs/images/native-selector.png)
 
-*截图来自使用模拟宿主的独立预览页，并非已安装插件的 DeepSeek Harness 客户端。*
+*这是 v0.1.5 替换界面的模拟宿主截图；不能证明它已在实际运行的 DeepSeek Harness 客户端中显示。*
 
 ## 功能亮点
 
 - **会流动的像素银河。** 无缝星流、错落闪烁的像素星点，随档位逐渐丰富的星云层次。模型实际提供的 `off` 或 `none` 档位保持轨道清爽。每四颗星点中有一颗参与闪烁。
 - **有手感的角色滑块。** 原创三表情鲸鱼女孩跟手移动、随拖动轻轻倾斜，松手后以阻尼弹簧动画归位。
 - **只用真实档位。** 档位 ID、名称和顺序取自当前 provider/model 的 `reasoning.efforts`，不虚构能力，也不把 `max` 和 `xhigh` 互相映射。模型提供的每一档都留在轨道上；五档及以上改为两行交错排布，不再脱离各自对应的位置。
-- **与原生状态同步。** 原生菜单修改会同步显示；提交失败保留宿主真实值，显示错误并允许重试。
+- **与原生状态同步。** 按 provider 分组搜索共享原生模型目录；当前模型与档位来自宿主状态。提交失败时保留宿主真实值，显示错误并允许重试。
 - **完整的交互保护。** 拖动只在松手时提交，中断手势会取消；支持键盘操作、减少动态效果和深浅色主题，隐藏时暂停动画。
 - **轻量原生集成。** 复用宿主的 React 与服务，没有生产 npm 依赖、安装时生命周期脚本，也不连接额外外部服务器。
 
@@ -21,25 +21,23 @@
 
 ## 兼容版本
 
-已发布的插件 **0.1.4** 以 **DeepSeek Harness 0.2.0-rc.2** 及后续 0.2 线版本为目标。该发布版接口已按官方标签 `dsh-v0.2.0-rc.2`、固定提交 `639ed015397290b3745d163aafe02ffee4aa3f84`（2026 年 9 月 29 日）核对。
+插件声明兼容 **DeepSeek Harness 0.2.0-rc.2** 及后续 0.2 线版本。已发布的 v0.1.4 接口按官方标签 `dsh-v0.2.0-rc.2`、固定提交 `639ed015397290b3745d163aafe02ffee4aa3f84`（2026 年 9 月 29 日）核对。v0.1.5 保持相同兼容范围。
 
 `engines.dsh` 与可选的 `@deepseek-ai/dsh` peer dependency 均声明 `^0.2.0-rc.2`。该范围接受已核对的 rc.2 基线与后续 0.2 线预发布/正式版本，排除 0.3.0 及更新版本——这些版本的接口尚未核对。将 peer 标为 optional，是为了避免包管理器自动安装另一套 DSH，不会绕过宿主检查。
 
-已发布的 v0.1.4 包通过了当时的本地、模拟加载器和浏览器预览检查，并在 Desktop `0.2.1-rc.2` 的真实 profile 中安装启用；该发布包注册的是额外的 `conversation.input.left` 入口。当前本地改动改为使用 `conversation.input.model`。对同一 Desktop 版本的 ASAR 静态检查确认了单一插槽及优先级顺序，但尚未在运行中的应用里目视验证替换后的界面。替换行为目前只有 `0.2.1-rc.2` 的源码级证据；声明的版本范围不代表每个 0.2 版本都已核对。其他分发包和第三方改版未验证。详见[兼容说明与上游证据](docs/COMPATIBILITY.md)。
+已发布的 v0.1.4 包通过了本地、模拟加载器和浏览器预览检查，并在 Desktop `0.2.1-rc.2` 的真实 profile 中安装启用；它注册的是额外的 `conversation.input.left` 入口。v0.1.5 改用 `conversation.input.model` 替换原生组合选择器。对同一 Desktop 版本 ASAR 的静态检查确认了单一插槽、优先级顺序和插件停用时的恢复路径。v0.1.5 通过模拟宿主 Chromium 验收，但尚未在运行中的 DSH 窗口目视验证。替换行为的源码级兼容证据目前只覆盖 `0.2.1-rc.2`；声明的范围不代表每个 0.2 版本都已核对。其他分发包和第三方改版未验证。详见[兼容说明与上游证据](docs/COMPATIBILITY.md)。
 
 ### 选择档位会怎样影响默认值
 
-滑块通过原生 `ModelDirectory.select` 提交完整的 provider/model/effort 选择。宿主将其用于当前会话的后续请求，并异步尝试保存为新会话默认值。切换成功**不代表默认值一定已保存**：后台持久化失败时，原生接口仍可能返回当前会话切换成功。
+滑块通过原生 `ModelDirectory.select` 提交完整的 provider/model/effort 选择。经核对的 Host 源码会将它用于当前会话的后续请求，并异步尝试保存为新会话默认值。切换成功**不代表默认值一定已保存**：后台持久化失败时，原生接口仍可能返回当前会话切换成功。v0.1.5 的模拟宿主验收没有连接真实 provider，也没有验证默认值落盘。
 
 ## 安装
 
-请先备份目标 profile 的 `package.json`、锁文件和 `cordis.patch.yml`，检查 `dsh --version`，并使用现有 **0.2** 安装配套的 CLI。
-
-包版本仍为 `0.1.4`；当前工作树里的选择器替换改动尚未发布。下文的 v0.1.4 安装命令指向已发布版本。
+请先备份目标 profile 的 `package.json`、锁文件和 `cordis.patch.yml`，检查 `dsh --version`，并使用现有 **0.2** 安装配套的 CLI。以下命令针对 **0.1.5**；从 npm 安装前，先用 `npm view` 确认该版本已可用。
 
 ### 方式一：安装预构建包
 
-发布附件可用时，获取 `dsh-galaxy-effort-slider-0.1.4.tgz`；也可以[从源码构建安装包](#开发与验收)。把文件放到运行 DSH Host 的电脑上。远程 Web 安装使用的是服务器上的路径，而不是浏览器所在电脑的路径。
+如果发布附件提供了 `dsh-galaxy-effort-slider-0.1.5.tgz`，可直接使用；也可以[从源码构建安装包](#开发与验收)。把文件放到运行 DSH Host 的电脑上。远程 Web 安装使用的是服务器上的路径，而不是浏览器所在电脑的路径。
 
 在 rc.2 界面中：
 
@@ -54,31 +52,23 @@ Web profile 也可以使用 CLI：
 
 ```sh
 dsh --version
-dsh plugin --profile web add "/绝对路径/dsh-galaxy-effort-slider-0.1.4.tgz"
+dsh plugin --profile web add "/绝对路径/dsh-galaxy-effort-slider-0.1.5.tgz"
 ```
 
 CLI 会把首次成功添加的新 bundle 纳入对应 profile；若已被关闭，请在 **Plugins** 页启用。不支持热更新时，完整重启该 profile 并刷新页面。安装包已带有注册 patch，无需手工修改原生 UI。
 
-### 现在即可通过 npm 从 GitHub 下载
-
-下载这个公开仓库不需要 npm 注册账号。电脑上已有 Git 和 npm 时，运行：
-
-```sh
-npm pack "git+https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider.git#8257d0ab5a645bcd39e64c48312953b6a90befa8" --ignore-scripts
-```
-
-这条命令已验证会生成包含预构建插件和双语 README 的 `dsh-galaxy-effort-slider-0.1.4.tgz`。固定提交对应首次发布的 v0.1.4 附加入口版本，会注册 `conversation.input.left`；它不包含当前本地的 `conversation.input.model` 替换改动。随后按方式一安装该文件。这验证的是下载与打包，不代表已在您的实际 DSH profile 中安装。
+此前文档中的 GitHub 固定提交 `8257d0ab5a645bcd39e64c48312953b6a90befa8` 属于 v0.1.4 附加入口版本，注册 `conversation.input.left`，不包含 v0.1.5 的选择器替换改动。不要用这个历史提交安装 v0.1.5。
 
 ### 方式二：从 npm 安装
 
 先检查 npm 中的版本，再通过 DSH 安装指定版本：
 
 ```sh
-npm view dsh-galaxy-effort-slider@0.1.4 version
-dsh plugin --profile web add dsh-galaxy-effort-slider@0.1.4
+npm view dsh-galaxy-effort-slider@0.1.5 version
+dsh plugin --profile web add dsh-galaxy-effort-slider@0.1.5
 ```
 
-图形界面中可将 tarball 路径替换为 `dsh-galaxy-effort-slider@0.1.4`，再依次点击 **Install** 和 **Enable now**。在无关目录里单独运行 `npm install`，不会把插件注册到 DSH profile。
+图形界面中可将 tarball 路径替换为 `dsh-galaxy-effort-slider@0.1.5`，再依次点击 **Install** 和 **Enable now**。在无关目录里单独运行 `npm install`，不会把插件注册到 DSH profile。
 
 ### Desktop profile
 
@@ -87,10 +77,10 @@ dsh plugin --profile web add dsh-galaxy-effort-slider@0.1.4
 需要 CLI 安装时，先打开 Desktop 一次完成 profile 初始化，确认 `dsh --version` 为 0.2 线版本（核对基线是 `0.2.0-rc.2`；真实安装验证用的是 `0.2.1-rc.2`），然后完整退出 Desktop，再运行：
 
 ```sh
-dsh plugin --profile desktop add "/绝对路径/dsh-galaxy-effort-slider-0.1.4.tgz"
+dsh plugin --profile desktop add "/绝对路径/dsh-galaxy-effort-slider-0.1.5.tgz"
 ```
 
-完成后重新启动 Desktop。也可用 `dsh-galaxy-effort-slider@0.1.4` 替换 tarball 路径。不要临时通过 `npx ...@latest` 换用另一版 CLI，也不要绕过兼容性警告。
+完成后重新启动 Desktop。也可用 `dsh-galaxy-effort-slider@0.1.5` 替换 tarball 路径。不要临时通过 `npx ...@latest` 换用另一版 CLI，也不要绕过兼容性警告。
 
 ### 移除
 

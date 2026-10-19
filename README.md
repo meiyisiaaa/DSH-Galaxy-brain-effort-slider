@@ -4,16 +4,16 @@ English · [简体中文](README.zh-CN.md)
 
 A model-and-effort picker with a flowing pixel nebula and an original chibi whale-girl thumb. While enabled, it occupies the host's combined model-and-effort selector and uses the shared native model directory and selection path used by `/model`.
 
-![Galaxy Effort Slider in the standalone local preview](docs/images/preview.jpg)
+![Galaxy Effort Slider replacing the native model selector in the simulated host](docs/images/native-selector.png)
 
-*Screenshot of the standalone preview with a simulated host, not an installed DeepSeek Harness client.*
+*Simulated-host view of the v0.1.5 selector replacement; it does not verify rendering in an installed DeepSeek Harness client.*
 
 ## Highlights
 
 - **A living pixel galaxy.** Seamless star flow, independently twinkling pixels, and progressively richer layers as the selected effort increases. An advertised `off` or `none` level keeps the rail clear. One star in four carries the twinkle.
 - **A responsive character.** The original three-expression whale girl follows the pointer, leans into the drag, and settles onto the chosen level with a damped spring.
 - **Real model capabilities.** Levels and labels come directly from the selected provider/model's `reasoning.efforts`. No invented levels or `max`/`xhigh` remapping. Every advertised level stays on the rail; five or more stagger across two rows rather than reflowing away from the positions they describe.
-- **Host-authoritative state.** The picker reads the active session's model and effort from the shared directory. Failed selections keep the host's actual value visible and expose a retryable error.
+- **Host-authoritative state.** Search models grouped by provider in the shared native directory. The picker reads the active session's model and effort; failed selections keep the host's actual value visible and expose a retryable error.
 - **Careful interaction.** Commit on release, cancel interrupted gestures, support keyboard controls, and pause animation when hidden. Reduced-motion and light/dark themes are supported.
 - **Small native integration.** Reuses the host's React and services; no production npm dependencies, install-time lifecycle scripts, or additional external servers.
 
@@ -21,25 +21,23 @@ This is an independent third-party plugin, with no affiliation with or endorseme
 
 ## Compatibility
 
-The published plugin **0.1.4** targets **DeepSeek Harness 0.2.0-rc.2** and later 0.2-line releases. Its released integration was checked against official tag `dsh-v0.2.0-rc.2`, commit `639ed015397290b3745d163aafe02ffee4aa3f84` (September 29, 2026).
+The plugin declares compatibility with **DeepSeek Harness 0.2.0-rc.2** and later 0.2-line releases. The published v0.1.4 integration was checked against official tag `dsh-v0.2.0-rc.2`, commit `639ed015397290b3745d163aafe02ffee4aa3f84` (September 29, 2026). The v0.1.5 build keeps the same compatibility range.
 
 Both `engines.dsh` and the optional `@deepseek-ai/dsh` peer dependency declare `^0.2.0-rc.2`. That range admits the audited rc.2 baseline and later 0.2-line prereleases and releases, while excluding 0.3.0 and anything newer, whose surfaces this plugin has not audited. Making the peer optional prevents package managers from automatically installing another DSH copy; it does not bypass the host's compatibility check.
 
-The published v0.1.4 bundle passed its local, simulated-loader, and browser-preview checks and was installed and enabled in a real Desktop profile running `0.2.1-rc.2`; that release registered an extra `conversation.input.left` entry. The current local replacement uses `conversation.input.model`. Static inspection of the same Desktop version's ASAR confirmed the single slot and priority ordering, but the replacement UI has not been visually verified in a running app. Replacement behavior has source-level evidence only for `0.2.1-rc.2`; the declared range does not mean every 0.2 release was checked. Other distributions and third-party builds are unverified. See [compatibility details and upstream evidence](docs/COMPATIBILITY.md).
+The published v0.1.4 bundle passed its local, simulated-loader, and browser-preview checks and was installed and enabled in a real Desktop profile running `0.2.1-rc.2`; it registered an extra `conversation.input.left` entry. The v0.1.5 build replaces the combined native selector through `conversation.input.model`. Static inspection of the same Desktop version's ASAR confirmed the single slot, priority ordering, and restoration path when the plugin is disabled. The v0.1.5 replacement passed simulated-host Chromium QA, but has not been visually verified in a running DSH app. Its source-level compatibility evidence covers only `0.2.1-rc.2`; the declared range does not mean every 0.2 release was checked. Other distributions and third-party builds are unverified. See [compatibility details and upstream evidence](docs/COMPATIBILITY.md).
 
 ### How selection affects defaults
 
-The slider calls native `ModelDirectory.select` with the full provider/model/effort selection. The host applies it to subsequent requests in the current session and asynchronously attempts to save it as the default for new sessions. A successful selection does **not** prove that the default was saved: the native API may still report session-level success if background persistence fails.
+The slider calls native `ModelDirectory.select` with the full provider/model/effort selection. In the audited Host source, the host applies it to subsequent requests in the current session and asynchronously attempts to save it as the default for new sessions. A successful selection does **not** prove that the default was saved: the native API may still report session-level success if background persistence fails. Neither a live provider selection nor default persistence was exercised in the v0.1.5 simulated-host QA.
 
 ## Installation
 
-Back up the target profile's `package.json`, lockfile, and `cordis.patch.yml`. Check `dsh --version`, and use the CLI supplied with your existing **0.2** installation.
-
-The package version remains `0.1.4`; the selector replacement in this working tree is unreleased. The v0.1.4 installation commands below refer to the published build.
+Back up the target profile's `package.json`, lockfile, and `cordis.patch.yml`. Check `dsh --version`, and use the CLI supplied with your existing **0.2** installation. The commands below target package version **0.1.5**; install from npm only after `npm view` confirms that exact version is available.
 
 ### Option A: install a prebuilt package
 
-Use `dsh-galaxy-effort-slider-0.1.4.tgz` from a release asset when available, or [build the tarball from source](#development). Place it on the machine running the DSH host. For a remote Web installation, that means the server, not your browser's computer.
+Use `dsh-galaxy-effort-slider-0.1.5.tgz` if it is attached to the release, or [build the tarball from source](#development). Place it on the machine running the DSH host. For a remote Web installation, that means the server, not your browser's computer.
 
 In the rc.2 interface:
 
@@ -54,31 +52,23 @@ For a Web profile, the CLI alternative is:
 
 ```sh
 dsh --version
-dsh plugin --profile web add "/absolute/path/dsh-galaxy-effort-slider-0.1.4.tgz"
+dsh plugin --profile web add "/absolute/path/dsh-galaxy-effort-slider-0.1.5.tgz"
 ```
 
 The CLI adds a newly installed bundle to the chosen profile. If it is disabled, enable it in **Plugins**. Without hot reload, fully restart that profile and refresh the page. The bundle already includes its registration patch; no manual UI patching is needed.
 
-### Download with npm directly from GitHub (available now)
-
-No npm registry account is needed to download this public repository. With Git and npm installed, run:
-
-```sh
-npm pack "git+https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider.git#8257d0ab5a645bcd39e64c48312953b6a90befa8" --ignore-scripts
-```
-
-This exact command was verified to produce `dsh-galaxy-effort-slider-0.1.4.tgz`, including the prebuilt plugin and both READMEs. The pinned commit is the initial v0.1.4 additive release, which registers `conversation.input.left`; it does not include the current local `conversation.input.model` replacement. Install the tarball using Option A. This verifies package retrieval, not installation in your actual DSH profile.
+The previously documented GitHub pin `8257d0ab5a645bcd39e64c48312953b6a90befa8` is the v0.1.4 additive build and registers `conversation.input.left`. It does not contain the v0.1.5 selector replacement; do not use that historical commit for this version.
 
 ### Option B: install from npm
 
 Check registry availability, then install the versioned package through DSH:
 
 ```sh
-npm view dsh-galaxy-effort-slider@0.1.4 version
-dsh plugin --profile web add dsh-galaxy-effort-slider@0.1.4
+npm view dsh-galaxy-effort-slider@0.1.5 version
+dsh plugin --profile web add dsh-galaxy-effort-slider@0.1.5
 ```
 
-In the graphical flow, enter `dsh-galaxy-effort-slider@0.1.4` instead of the tarball path, then **Install** and **Enable now**. A plain `npm install` in an unrelated folder does not register a DSH profile plugin.
+In the graphical flow, enter `dsh-galaxy-effort-slider@0.1.5` instead of the tarball path, then **Install** and **Enable now**. A plain `npm install` in an unrelated folder does not register a DSH profile plugin.
 
 ### Desktop profile
 
@@ -87,10 +77,10 @@ Prefer the **Plugins** interface. Official rc.2 Desktop for macOS/Windows provid
 For CLI installation, open Desktop once to initialize its profile, confirm `dsh --version` reports a 0.2-line version (the verified baseline is `0.2.0-rc.2`; `0.2.1-rc.2` was used for the real-install check), and fully quit Desktop before running:
 
 ```sh
-dsh plugin --profile desktop add "/absolute/path/dsh-galaxy-effort-slider-0.1.4.tgz"
+dsh plugin --profile desktop add "/absolute/path/dsh-galaxy-effort-slider-0.1.5.tgz"
 ```
 
-Restart Desktop afterward. The npm package specifier `dsh-galaxy-effort-slider@0.1.4` can replace the tarball path. Do not substitute a different CLI with `npx ...@latest` or bypass a compatibility warning.
+Restart Desktop afterward. The npm package specifier `dsh-galaxy-effort-slider@0.1.5` can replace the tarball path. Do not substitute a different CLI with `npx ...@latest` or bypass a compatibility warning.
 
 ### Remove
 

@@ -1,9 +1,16 @@
 # Changelog
 
-## Unreleased
+## 0.1.5 — 2026-10-19
 
-- Replace the extra `conversation.input.left` entry with the Galaxy picker in the host's combined `conversation.input.model` slot. The picker groups models by provider, supports search, keeps the effort slider, offers “跟随默认” when a model has no `defaultEffort`, retries directory-load errors, and blocks changes while the session or another action is busy. Deactivating the plugin restores the native selector.
-- Smoother dragging with batched starfield drawing, preserving pixel counts, independent twinkle phases, flow, glow and character motion. Hidden, offscreen and reduced-motion controls stop the shared animation loop.
+### Native selector
+
+- Replace the v0.1.4 extra `conversation.input.left` entry with the picker in the host's combined `conversation.input.model` selector. Disabling the plugin restores the native selector.
+- Add model search grouped by provider, retain the effort slider, offer “跟随默认” when a model has no `defaultEffort`, retry directory-load errors, and block changes while the session or another action is busy.
+
+### Motion and verification
+
+- Batch starfield drawing to smooth dragging while preserving pixel counts, independent twinkle phases, flow, glow, and character motion. Hidden, offscreen, and reduced-motion controls stop the shared animation loop.
+- `npm run check` passed with 105/105 checks. The minified production bundle also passed Chromium QA against a simulated host. The replacement has not been visually verified in a running DSH window; live provider selection and default persistence were not exercised.
 
 ## 0.1.4 — 2026-10-17
 
@@ -33,6 +40,5 @@
 
 ### Known limits
 
-- The published v0.1.4 additive bundle was installed and enabled in a real Desktop `0.2.1-rc.2` profile on 2026-10-19 and registered `conversation.input.left`. This historical check does not verify the unreleased replacement UI. Static inspection of the same version's ASAR confirmed the `conversation.input.model` slot priorities and scoped restoration path; the visible replacement has not been verified in a running app. This replacement evidence covers only `0.2.1-rc.2`; the unchanged range does not imply each version was checked. Host versions outside `^0.2.0-rc.2` are not covered by the declaration.
+- The published v0.1.4 additive bundle was installed and enabled in a real Desktop `0.2.1-rc.2` profile on 2026-10-19 and registered `conversation.input.left`. This historical check does not verify the v0.1.5 replacement UI. Static inspection of the same version's ASAR confirmed the `conversation.input.model` slot priorities and scoped restoration path; the visible replacement has not been verified in a running app. This replacement evidence covers only `0.2.1-rc.2`; the unchanged range does not imply each version was checked. Host versions outside `^0.2.0-rc.2` are not covered by the declaration.
 - Native selection also attempts to persist a new-session default asynchronously. Session-level success does not guarantee that persistence succeeded.
-- npm publication is tracked separately from this changelog; use registry installation only once the exact package version is available.

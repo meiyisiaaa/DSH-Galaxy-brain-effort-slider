@@ -20,7 +20,7 @@ test('the rc.2 peer gate declares a bounded range instead of an exact pin', () =
 })
 
 test('rc.2 release identity and local lock agree with the package', () => {
-  assert.equal(manifest.version, '0.1.4')
+  assert.equal(manifest.version, '0.1.5')
   assert.equal(audit.tag, 'dsh-v0.2.0-rc.2')
   assert.equal(audit.commit, '639ed015397290b3745d163aafe02ffee4aa3f84')
   // The audited baseline is the floor of the declared range, not the whole range.
