@@ -498,10 +498,14 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
               </div>
             </div>
           </div>
-          <div className="dsg-label-rail" data-dense={denseLabels} aria-label="可用思考档位">
+          <div className="dsg-label-rail" data-dense={denseLabels} aria-label="可用思考档位"
+            style={denseLabels && options.length > 1 ? { height: 88 } : undefined}>
             {options.map((option, index) => <button key={option.value} type="button" className="dsg-option" disabled={!canChange}
               aria-pressed={committedIndex === index} data-preview={displayedIndex === index}
-              style={{ left: `${progressFor(index, options.length) * 100}%` }} onClick={() => void commit(index)}>{option.label}<span className="dsg-option-dot" aria-hidden="true"/></button>)}
+              title={denseLabels ? option.label : undefined}
+              style={{ left: `${progressFor(index, options.length) * 100}%`, ...(denseLabels
+                ? { maxWidth: options.length > 1 ? `calc(${200 / (options.length - 1)}% - 8px)` : '100%' }
+                : {}) }} onClick={() => void commit(index)}><span className="dsg-option-label">{option.label}</span><span className="dsg-option-dot" aria-hidden="true"/></button>)}
           </div>
         </div>}
         {helpText && <p id={`${id}-help`} className="dsg-help" role="status">{helpText}</p>}

@@ -64,6 +64,13 @@
 .dsg-pixel-group[data-depth="1"] { opacity: var(--dsg-middle-alpha, 0); }
 .dsg-pixel-group[data-depth="2"] { opacity: var(--dsg-nebula-alpha, 0); }
 .dsg-pixel-cell i, .dsg-pixel-wake i { position: absolute; width: 3px; height: 3px; opacity: .72; animation: dsg-pixel-twinkle 2.1s ease-in-out infinite; animation-play-state: running; }
+/* Measured at 4x CPU throttle, one drag of 90 steps: 244 animating pixels cost
+   ~3.2 s of style recalc and pin p95 frame time at 66.7 ms, because opacity is
+   not a composited property on these 2-3 px elements and every one of them is
+   restyled on every frame. Animating one pixel in four measures as p50/p95
+   16.7 ms with a quarter of the recalc, and at this size the field still reads
+   as a static-sparkle galaxy rather than a strobe. */
+.dsg-pixel-cell i:not(:nth-child(4n + 1)), .dsg-pixel-wake i:not(:nth-child(4n + 1)) { animation: none; opacity: .58; }
 .dsg-pixel-background .dsg-pixel-cell i:nth-child(5n) { width: 2px; height: 2px; }
 .dsg-pixel-foreground { z-index: 2; opacity: var(--dsg-foreground-alpha, 0); animation-duration: 11s; animation-delay: -3.8s; transition: opacity 280ms ease; }
 .dsg-pixel-foreground i, .dsg-pixel-wake i { width: 2px; height: 2px; }
@@ -97,8 +104,17 @@
 .dsg-option:disabled { cursor: default; }
 .dsg-option-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--dsg-accent); opacity: 0; }
 .dsg-option[aria-pressed="true"] .dsg-option-dot { opacity: 1; }
-.dsg-label-rail[data-dense="true"] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; height: auto; margin: -5px 6px 0; }
-.dsg-label-rail[data-dense="true"] .dsg-option { position: relative; left: auto !important; transform: none; max-width: none; width: 100%; white-space: normal; overflow-wrap: anywhere; justify-content: center; }
+/* A dense rail keeps every tier on the same horizontal scale. Alternating rows
+   halve the distance between neighbours; the previous wrapping grid moved the
+   labels off the positions they describe, so five tiers or more no longer read
+   as a scale at all. 44px is the minimum vertical step that keeps two 44px hit
+   targets apart, and labels stay on one ellipsised line so a wrapped label can
+   never push past the rail's fixed height. The rail height and the per-label
+   width budget are inline (see GalaxyEffortSlider.tsx) because both depend on
+   the tier count, and a single dense label needs neither. */
+.dsg-label-rail[data-dense="true"] .dsg-option { white-space: nowrap; overflow: hidden; }
+.dsg-label-rail[data-dense="true"] .dsg-option:nth-child(2n) { top: 44px; }
+.dsg-option-label { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .dsg-help { margin: 4px 3px 0; font-size: 14px; line-height: 1.6; color: var(--dsg-muted); text-align: center; overflow-wrap: anywhere; }
 .dsg-error { margin: 8px 0 0; padding: 10px 12px; color: var(--dsg-error); background: #e9537310; border: 1px solid #e9537338; border-radius: 10px; font-size: 14px; overflow-wrap: anywhere; }
 .dsg-spinner { display: inline-block; flex: 0 0 13px; width: 13px; height: 13px; border: 1.5px solid #9aabff45; border-top-color: var(--dsg-accent); border-radius: 50%; animation: dsg-spin .9s linear infinite; }

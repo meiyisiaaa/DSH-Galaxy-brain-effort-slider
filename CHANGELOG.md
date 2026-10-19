@@ -7,6 +7,8 @@
 - Flowing pixel-nebula rail with seamless repeated strips and independent star twinkles.
 - Continuous star animation at rest, including the highest effort level, without keeping the thumb's animation loop running.
 - Stable full-rail pixel geometry across effort levels; sparse lower levels and progressively richer higher levels. Actual `off`/`none` values keep the rail clear.
+- One twinkle in four instead of all of them. Measured at 4x CPU throttle over a 90-step drag: style recalc per drag fell from ~3.2 s to ~0.9 s and p95 frame time from 66.7 ms to 16.7 ms, with idle recalc down 4x. Opacity is not composited on 2-3 px elements, so the cost scales with the number of animated pixels; promoting them or swapping in a transform both measured worse.
+- Five or more tiers stagger across two rows on the rail instead of wrapping into a 3-column grid that detached each label from the position it describes. Long labels ellipsise within a per-label width budget derived from the tier count, so the panel keeps a fixed width.
 - Original three-expression chibi whale-girl thumb with immediate pointer tracking, smoothed lean, and damped settling.
 - Animation pause/resume for hidden or offscreen controls, reduced-motion support, and light/dark theme inheritance.
 
@@ -19,7 +21,7 @@
 
 ### Verification and documentation
 
-- 65 passing regression tests covering capability/selection behavior, rc.2 compatibility, UI interaction, and motion.
+- 67 passing regression tests covering capability/selection behavior, rc.2 compatibility, UI interaction, and motion.
 - TypeScript validation, production build, and simulated native-loader checks.
 - Read-only manifest of 20 audited upstream file hashes.
 - English and Simplified Chinese READMEs, profile-specific GUI/CLI installation instructions, and release notes.

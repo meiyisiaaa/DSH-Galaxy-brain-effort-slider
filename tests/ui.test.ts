@@ -371,6 +371,54 @@ test('many or long capability names use the nonoverlapping wrapping layout', () 
   assert.equal(selector('.dsg-label-rail').getAttribute('data-dense'), 'true');
 });
 
+test('a dense rail staggers tiers instead of reflowing them off their positions', () => {
+  loadStyles();
+  const many = Array.from({ length: 5 }, (_, index) => ({ value: `tier-${index}`, label: `Tier ${index}` }));
+  render({ options: many, value: 'tier-0' });
+  open();
+  const rail = selector('.dsg-label-rail');
+  assert.equal(rail.getAttribute('data-dense'), 'true');
+  // Two 44px rows, so neighbours sit 44px apart vertically and never overlap.
+  assert.equal(rail.style.height, '88px');
+  assert.equal(window.getComputedStyle(rail).height, '88px');
+  const buttons = [...document.querySelectorAll<HTMLElement>('.dsg-option')];
+  // Every tier keeps its proportional left offset; only the row alternates.
+  assert.deepEqual(buttons.map(button => button.style.left), ['0%', '25%', '50%', '75%', '100%']);
+  assert.deepEqual(buttons.map(button => window.getComputedStyle(button).top), ['0px', '44px', '0px', '44px', '0px']);
+  // The label owns the ellipsis, so a truncated name cannot grow the button.
+  assert.equal(selector('.dsg-option-label').textContent, 'Tier 0');
+  assert.match(sliderCSS, /\.dsg-option-label\s*\{[^}]*text-overflow: ellipsis/);
+  assert.doesNotMatch(sliderCSS, /data-dense="true"\]\s*\{[^}]*grid-template-columns/);
+  // A single long name is dense for width only; it needs no second row.
+  render({ options: [{ value: 'long', label: 'Provider-specific deep reasoning' }], value: 'long' });
+  assert.equal(selector('.dsg-label-rail').getAttribute('data-dense'), 'true');
+  assert.equal(selector('.dsg-label-rail').style.height, '');
+  assert.equal(window.getComputedStyle(selector('.dsg-option-label')).textOverflow, 'ellipsis');
+});
+
+test('only one pixel in four twinkles so a drag keeps its frame budget', () => {
+  loadStyles();
+  open();
+  const pixels = [...document.querySelectorAll<HTMLElement>('.dsg-pixel-stream i')];
+  assert.equal(pixels.length, 244);
+  // The rule keys on :nth-child, so the phase is counted inside each pixel group
+  // (22, 29 and 59 stars) and each wake, not across the flattened star field.
+  let animated = 0;
+  for (const pixel of pixels) {
+    const siblings = [...pixel.parentElement!.children];
+    const shouldAnimate = siblings.indexOf(pixel) % 4 === 0;
+    const animates = window.getComputedStyle(pixel).animation !== 'none';
+    assert.equal(animates, shouldAnimate, `pixel ${siblings.indexOf(pixel)} of ${siblings.length}`);
+    if (animates) animated += 1;
+  }
+  // Measured: 244 animating pixels pin p95 at 66.7ms during a drag at 4x throttle;
+  // this 67-pixel set measures 16.7ms with the same star field.
+  assert.equal(animated, 64);
+  assert.equal(window.getComputedStyle(pixels[1]!).opacity, '0.58');
+  assert.equal(window.getComputedStyle(pixels[0]!).opacity, '0.72');
+  assert.match(sliderCSS, /\.dsg-pixel-cell i:not\(:nth-child\(4n \+ 1\)\)[^{]*\{[^}]*animation: none/);
+});
+
 test('failed custom image uses the neutral star fallback', () => {
   render({ avatarSrc: 'https://invalid.example/avatar.png', avatarLayout: 'single' });
   open();

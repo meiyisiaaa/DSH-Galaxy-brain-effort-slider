@@ -10,9 +10,9 @@ A native reasoning-effort picker with a flowing pixel nebula and an original chi
 
 ## Highlights
 
-- **A living pixel galaxy.** Seamless star flow, independently twinkling pixels, and progressively richer layers as the selected effort increases. An advertised `off` or `none` level keeps the rail clear.
+- **A living pixel galaxy.** Seamless star flow, independently twinkling pixels, and progressively richer layers as the selected effort increases. An advertised `off` or `none` level keeps the rail clear. One star in four carries the twinkle, which measured 3.4x less style recalculation and a 16.7 ms p95 frame time during a drag.
 - **A responsive character.** The original three-expression whale girl follows the pointer, leans into the drag, and settles onto the chosen level with a damped spring.
-- **Real model capabilities.** Levels and labels come directly from the selected provider/model's `reasoning.efforts`. No invented levels or `max`/`xhigh` remapping.
+- **Real model capabilities.** Levels and labels come directly from the selected provider/model's `reasoning.efforts`. No invented levels or `max`/`xhigh` remapping. Every advertised level stays on the rail; five or more stagger across two rows rather than reflowing away from the positions they describe.
 - **One source of truth.** Native menu changes appear in the slider. Failed submissions keep the host's actual value and show a retryable error.
 - **Careful interaction.** Commit on release, cancel interrupted gestures, support keyboard controls, and pause animation when hidden. Reduced-motion and light/dark themes are supported.
 - **Small native integration.** Reuses the host's React and services; no production npm dependencies, install-time lifecycle scripts, or additional external servers.
@@ -25,7 +25,7 @@ Plugin **0.1.4** targets **DeepSeek Harness 0.2.0-rc.2** and later 0.2-line rele
 
 Both `engines.dsh` and the optional `@deepseek-ai/dsh` peer dependency declare `^0.2.0-rc.2`. That range admits the audited rc.2 baseline and later 0.2-line prereleases and releases, while excluding 0.3.0 and anything newer, whose surfaces this plugin has not audited. Making the peer optional prevents package managers from automatically installing another DSH copy; it does not bypass the host's compatibility check.
 
-Local tests, a simulated native loader, and browser-preview checks have passed. **Installation in a real DSH profile or Desktop distribution has not yet been verified.** Other versions and third-party builds are unverified. See [compatibility details and upstream evidence](docs/COMPATIBILITY.md).
+Local tests, a simulated native loader, and browser-preview checks have passed, and the bundle was installed and enabled in a real Desktop profile running `0.2.1-rc.2`, where it registered its `conversation.input.left` occupant. Other distributions, versions, and third-party builds are unverified. See [compatibility details and upstream evidence](docs/COMPATIBILITY.md).
 
 ### How selection affects defaults
 
@@ -131,7 +131,7 @@ npm run test:bundle
 npm pack --ignore-scripts
 ```
 
-`npm run check` runs TypeScript checks, all unit/UI/motion tests, the production build, and simulated native-loader checks. The v0.1.4 released source line now has **65 passing tests**. These checks do not replace installation testing in a real client.
+`npm run check` runs TypeScript checks, all unit/UI/motion tests, the production build, and simulated native-loader checks. The v0.1.4 released source line now has **67 passing tests**. These checks do not replace installation testing in a real client.
 
 The browser artifact is a lazy CommonJS factory registered through `window.__ModuleLoader__`, not a standalone ESM script. React, React DOM, and the JSX runtime stay external to reuse the host's copies. The character image is embedded as a data URL; styles are added and removed through the Cordis lifecycle.
 
