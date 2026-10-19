@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { commitEffort, deriveEffortView } from '../src/adapter/effort'
+import { commitEffort, commitModel, deriveEffortView, selectionDisabledReason } from '../src/adapter/effort'
 import type { ModelDirectory, ModelDirectoryState, ModelSelection, SessionSnapshot } from '../src/adapter/host-contract'
 const session: SessionSnapshot = { running: false, removed: false, openState: 'open', pendingSubmissions: [], awaitingFirstTurn: false, subagent: null }
 const idle: ModelDirectoryState = {
@@ -29,6 +29,23 @@ test('falls back to exact model default when selection has no explicit effort', 
 test('does not invent a default when the model has none', () => {
   const state = { ...idle, current: route, groups: [{ id: 'deepseek', name: 'DeepSeek', models: [{ id: 'v4', name: 'V4', reasoning: { efforts: [{ id: 'custom', name: 'Custom' }] } }] }] }
   assert.equal(deriveEffortView(state, session).value, undefined)
+})
+test('commits provider-default without a sentinel when reasoning has no default', async () => {
+  const state = { ...idle, current: { ...route, reasoningEffort: 'custom' }, groups: [{ id: 'deepseek', name: 'DeepSeek', models: [{ id: 'v4', name: 'V4', reasoning: { efforts: [] } }] }] }
+  const { dir, calls } = directory(state)
+  await commitEffort(dir, () => session, route, undefined)
+  assert.deepEqual(calls, [route])
+})
+test('does not allow provider-default for a model without reasoning metadata', async () => {
+  const state = { ...idle, groups: [{ id: 'deepseek', name: 'DeepSeek', models: [{ id: 'v4', name: 'V4' }] }] }
+  const { dir, calls } = directory(state)
+  await assert.rejects(commitEffort(dir, () => session, route, undefined), /未声明/)
+  assert.equal(calls.length, 0)
+})
+test('does not use provider-default when the current model declares a default', async () => {
+  const { dir, calls } = directory()
+  await assert.rejects(commitEffort(dir, () => session, route, undefined), /不支持提供方默认/)
+  assert.equal(calls.length, 0)
 })
 test('retains unknown saved effort without selecting a different option', () => {
   const view = deriveEffortView({ ...idle, current: { ...route, reasoningEffort: 'retired' }, retainedEffort: '旧档位' }, session)
@@ -101,4 +118,81 @@ test('failed session open is reported as a failure, not as "connecting"', () => 
 test('in-flight session open still reads as connecting', () => {
   assert.match(deriveEffortView(idle, { ...session, openState: 'loading' }).disabledReason!, /正在连接会话/)
   assert.match(deriveEffortView(idle, { ...session, openState: 'cold' }).disabledReason!, /正在连接会话/)
+})
+
+const target = { provider: 'deepseek', model: 'v5' }
+const withTarget: ModelDirectoryState = {
+  ...idle,
+  groups: [{ id: 'deepseek', name: 'DeepSeek', models: [
+    idle.groups[0]!.models[0]!,
+    { id: 'v5', name: 'DeepSeek V5', reasoning: { defaultEffort: 'high', efforts: [{ id: 'low', name: 'Low' }] } },
+  ] }],
+}
+test('native model commit selects the catalog default effort', async () => {
+  const { dir, calls } = directory(withTarget)
+  await commitModel(dir, () => session, route, target)
+  assert.deepEqual(calls, [{ ...target, reasoningEffort: 'high' }])
+})
+test('native model commit omits reasoningEffort when target has no default', async () => {
+  const state = { ...withTarget, groups: [{ id: 'deepseek', name: 'DeepSeek', models: [
+    ...withTarget.groups[0]!.models,
+    { id: 'v6', name: 'DeepSeek V6', reasoning: { efforts: [{ id: 'low', name: 'Low' }] } },
+  ] }] }
+  const { dir, calls } = directory(state)
+  await commitModel(dir, () => session, route, { provider: 'deepseek', model: 'v6' })
+  assert.deepEqual(calls, [{ provider: 'deepseek', model: 'v6' }])
+})
+test('native model commit can select from no current route', async () => {
+  const state = { ...withTarget, current: null, routable: false }
+  const { dir, calls } = directory(state)
+  assert.equal(selectionDisabledReason(state, session), undefined)
+  await commitModel(dir, () => session, null, target)
+  assert.deepEqual(calls, [{ ...target, reasoningEffort: 'high' }])
+})
+test('native model commit can replace a current route that is not routable', async () => {
+  const state = { ...withTarget, routable: false }
+  const { dir, calls } = directory(state)
+  await commitModel(dir, () => session, route, target)
+  assert.deepEqual(calls, [{ ...target, reasoningEffort: 'high' }])
+})
+test('rejects native model commit after an external selection change', async () => {
+  const state = { ...withTarget, current: { provider: 'deepseek', model: 'v5' } }
+  const { dir, calls } = directory(state)
+  await assert.rejects(commitModel(dir, () => session, route, { provider: 'deepseek', model: 'v4' }), /模型已改变/)
+  assert.equal(calls.length, 0)
+})
+test('rejects native model targets that are no longer in the current catalog', async () => {
+  const { dir, calls } = directory(withTarget)
+  await assert.rejects(commitModel(dir, () => session, route, { provider: 'deepseek', model: 'removed' }), /不可用/)
+  assert.equal(calls.length, 0)
+})
+test('rechecks a busy session before native model selection', async () => {
+  const { dir, calls } = directory(withTarget)
+  await assert.rejects(commitModel(dir, () => ({ ...session, running: true }), route, target), /任务进行中/)
+  assert.equal(calls.length, 0)
+})
+test('rechecks a pending native selection before model selection', async () => {
+  const { dir, calls } = directory({ ...withTarget, status: 'selecting', pending: target })
+  await assert.rejects(commitModel(dir, () => session, route, target), /切换模型/)
+  assert.equal(calls.length, 0)
+})
+test('blocks native model selection until the catalog has loaded', async () => {
+  const { dir, calls } = directory({ ...withTarget, status: 'loading' })
+  await assert.rejects(commitModel(dir, () => session, route, target), /读取模型菜单/)
+  assert.equal(calls.length, 0)
+})
+test('same model selection preserves the current effort without a request', async () => {
+  const { dir, calls } = directory(withTarget)
+  await commitModel(dir, () => session, route, route)
+  assert.equal(calls.length, 0)
+})
+test('native selection failure reports host error without mutating current state', async () => {
+  const { dir, calls } = directory(withTarget)
+  dir.select = async value => {
+    calls.push(value)
+    return { ok: false, error: { code: 'session/model-unavailable', message: 'invalid route' } }
+  }
+  await assert.rejects(commitModel(dir, () => session, route, target), /invalid route/)
+  assert.deepEqual(calls, [{ ...target, reasoningEffort: 'high' }])
+  assert.deepEqual(dir.store.getSnapshot().current, idle.current)
 })

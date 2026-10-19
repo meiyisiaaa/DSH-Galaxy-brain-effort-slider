@@ -1,0 +1,97 @@
+.dsg-model-picker {
+  flex: 1 1 300px;
+  min-width: 0;
+  max-width: 300px;
+  color: var(--dsg-text);
+}
+.dsg-model-picker-controls { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.dsg-model-picker button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
+.dsg-model-picker button:not(:disabled) { cursor: pointer; }
+.dsg-model-picker button:focus-visible, .dsg-model-picker-search:focus-visible { outline: 2px solid var(--dsg-accent); outline-offset: 2px; }
+.dsg-model-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 38px;
+  padding: 6px 9px;
+  border: 1px solid var(--dsg-line);
+  border-radius: 12px;
+  background: var(--dsg-surface);
+  text-align: left;
+  transition: background 150ms ease, border-color 150ms ease, transform 120ms ease;
+}
+.dsg-model-picker-trigger:hover { border-color: color-mix(in srgb, var(--dsg-accent) 55%, transparent); background: var(--dsg-surface-soft); }
+.dsg-model-picker-trigger:active, .dsg-model-picker-default:active:not(:disabled) { transform: scale(.985); }
+.dsg-model-picker-trigger-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; }
+.dsg-model-picker-chevron { flex: 0 0 14px; width: 14px; height: 14px; fill: none; stroke: var(--dsg-muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 160ms ease; }
+.dsg-model-picker[data-expanded="true"] .dsg-model-picker-chevron { transform: rotate(180deg); }
+.dsg-model-picker-default {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  min-height: 36px;
+  max-width: 94px;
+  padding: 6px 8px;
+  overflow: hidden;
+  border: 1px solid var(--dsg-line);
+  border-radius: 11px;
+  background: transparent;
+  color: var(--dsg-muted) !important;
+  font-size: 12px !important;
+  line-height: 16px;
+  white-space: nowrap;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease, transform 120ms ease;
+}
+.dsg-model-picker-default:hover:not(:disabled) { color: var(--dsg-text) !important; background: var(--dsg-surface-soft); }
+.dsg-model-picker-default[aria-pressed="true"] { border-color: color-mix(in srgb, var(--dsg-accent) 45%, transparent); color: var(--dsg-accent-strong) !important; background: color-mix(in srgb, var(--dsg-accent) 10%, transparent); }
+.dsg-model-picker-default:disabled { opacity: .55; cursor: default; }
+.dsg-model-picker-spinner { display: inline-block; flex: 0 0 12px; width: 12px; height: 12px; border: 1.5px solid color-mix(in srgb, var(--dsg-accent) 30%, transparent); border-top-color: var(--dsg-accent); border-radius: 50%; animation: dsg-model-picker-spin .85s linear infinite; }
+.dsg-model-picker-body { margin-top: 8px; padding: 9px; border: 1px solid var(--dsg-line); border-radius: 13px; background: var(--dsg-surface); box-shadow: inset 0 1px #ffffff08; }
+.dsg-model-picker-search {
+  display: block;
+  width: 100%;
+  height: 36px;
+  margin: 0 0 7px;
+  padding: 6px 10px;
+  border: 1px solid var(--dsg-line);
+  border-radius: 9px;
+  outline: none;
+  background: var(--dsg-surface-soft);
+  color: var(--dsg-text);
+  font: inherit;
+  font-size: 13px;
+}
+.dsg-model-picker-search::placeholder { color: var(--dsg-muted); opacity: .85; }
+.dsg-model-picker-list { max-height: 210px; overflow: auto; overscroll-behavior: contain; scrollbar-color: var(--dsg-muted) transparent; scrollbar-width: thin; }
+.dsg-model-picker-provider + .dsg-model-picker-provider { margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--dsg-line); }
+.dsg-model-picker-provider-name { margin: 0; padding: 2px 7px 4px; overflow: hidden; color: var(--dsg-muted); font-size: 11px; font-weight: 650; letter-spacing: .035em; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.dsg-model-picker-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.dsg-model-picker-option:hover, .dsg-model-picker-option:focus-visible, .dsg-model-picker-option[data-active="true"] { background: var(--dsg-surface-soft); }
+.dsg-model-picker-option[aria-selected="true"] { color: var(--dsg-accent-strong); }
+.dsg-model-picker-option[aria-disabled="true"] { cursor: default; }
+.dsg-model-picker-option-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 18px; }
+.dsg-model-picker-check { flex: 0 0 15px; width: 15px; height: 15px; fill: none; stroke: var(--dsg-accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.dsg-model-picker-status { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 8px; color: var(--dsg-muted); font-size: 12px; text-align: center; }
+.dsg-model-picker-error { display: flex; align-items: flex-start; gap: 8px; margin-top: 7px; padding: 7px 9px; border: 1px solid color-mix(in srgb, var(--dsg-error) 28%, transparent); border-radius: 9px; background: color-mix(in srgb, var(--dsg-error) 7%, transparent); color: var(--dsg-error); font-size: 12px; line-height: 17px; overflow-wrap: anywhere; }
+.dsg-model-picker-error > span { min-width: 0; flex: 1 1 auto; }
+.dsg-model-picker-retry { flex: 0 0 auto; padding: 0 2px; border: 0; background: transparent; color: var(--dsg-accent-strong) !important; font-size: 12px !important; text-decoration: underline; text-underline-offset: 2px; }
+.dsg-model-picker-retry:disabled { opacity: .6; cursor: default; }
+.dsg-model-picker-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@keyframes dsg-model-picker-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .dsg-model-picker *, .dsg-model-picker *::before, .dsg-model-picker *::after { animation: none !important; transition: none !important; } }

@@ -29,6 +29,12 @@
 .dsg-chip-label { color: var(--dsg-muted); }
 .dsg-chip-value { max-width: 130px; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .dsg-chip[data-unavailable="true"] .dsg-chip-star { color: var(--dsg-muted); }
+.dsg-anchor[data-native="true"] .dsg-chip { min-height: 28px; max-width: 100%; gap: 6px; padding: 3px 6px; border: 0; border-radius: 6px; background: transparent; font-size: 13px; line-height: 20px; }
+.dsg-anchor[data-native="true"] .dsg-chip:hover, .dsg-anchor[data-native="true"] .dsg-chip[aria-expanded="true"] { background: var(--dsw-alias-interactive-bg-hover, var(--dsg-surface-soft)); }
+.dsg-anchor[data-native="true"] .dsg-chip-star { width: 14px; height: 14px; flex-shrink: 0; }
+.dsg-anchor[data-native="true"] .dsg-chip-label { max-width: min(240px, 36vw); overflow: hidden; text-overflow: ellipsis; }
+.dsg-anchor[data-native="true"] .dsg-chip-value { max-width: 80px; }
+.dsg-chip:disabled { opacity: .5; cursor: default; }
 .dsg-chevron { width: 14px; height: 14px; fill: none; stroke: var(--dsg-muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 180ms; }
 .dsg-chip[aria-expanded="true"] .dsg-chevron { transform: rotate(180deg); }
 .dsg-panel { z-index: 2147483000; width: 368px; max-width: calc(100vw - 24px); overflow: auto; overscroll-behavior: contain; isolation: isolate; padding: 17px 18px 18px; border: 1px solid var(--dsg-line); border-radius: 22px; background: radial-gradient(ellipse at 85% 4%, #697fce18, transparent 55%), radial-gradient(ellipse at 8% 58%, #815cc20d, transparent 50%), var(--dsg-surface); box-shadow: 0 25px 75px #05091680, 0 4px 18px #0b102c40, 0 0 0 1px #b5c9ff06, inset 0 1px #ffffff0d; animation: dsg-enter 160ms ease-out both; }
@@ -36,6 +42,8 @@
 .dsg-panel { overflow-x: hidden; }
 .dsg-panel:focus { outline: none; }
 .dsg-header { display: flex; align-items: center; gap: 8px; }
+.dsg-header[data-model-picker="true"] { align-items: flex-start; }
+.dsg-header[data-model-picker="true"] .dsg-close { margin-top: 0; }
 .dsg-model { flex: 1 1 auto; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dsg-muted); font-size: 13px; line-height: 20px; letter-spacing: .01em; }
 .dsg-close { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; margin: -12px -10px -12px 0; padding: 0; border: 0; border-radius: 12px; background: transparent; }
 .dsg-close:hover { background: var(--dsg-surface-soft); }
@@ -123,5 +131,6 @@
 :is(.light, [data-theme="light"], [data-color-scheme="light"]) .dsg, .dsg[data-theme="light"] { --dsg-surface: #fcfcff; --dsg-surface-soft: #eff2fc; --dsg-text: #20283e; --dsg-muted: #626d85; --dsg-line: #43578425; --dsg-accent: #526bc5; --dsg-accent-strong: #4d5cb1; --dsg-error: #a42e48; }
 :is(.dark, [data-theme="dark"], [data-color-scheme="dark"]) .dsg, .dsg[data-theme="dark"] { --dsg-surface: #171a24; --dsg-surface-soft: #202434; --dsg-text: #eef0fa; --dsg-muted: #a8afc5; --dsg-line: #c0c9ff20; --dsg-accent: #aab9ff; --dsg-accent-strong: #c5ceff; --dsg-error: #ffb1be; }
 @media (max-width: 360px) { .dsg-panel { padding-inline: 13px; } .dsg-chip { gap: 6px; } .dsg-chip-value { max-width: 90px; } }
-@media (prefers-reduced-motion: reduce) { .dsg *, .dsg *::before, .dsg *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } .dsg-burst, .dsg-pixel-wake { display: none; } .dsg-avatar { transform: none !important; } }
+@media (pointer: coarse) { .dsg-anchor[data-native="true"] .dsg-chip { min-height: 44px; } }
+@media (prefers-reduced-motion: reduce) { .dsg, .dsg *, .dsg *::before, .dsg *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } .dsg-burst, .dsg-pixel-wake { display: none; } .dsg-avatar { transform: none !important; } }
 @media (forced-colors: active) { .dsg-chip, .dsg-panel, .dsg-track-bed { border: 1px solid ButtonText; } .dsg-option[aria-pressed="true"] { outline: 1px solid Highlight; } .dsg-galaxy-fill { background: Highlight; } }

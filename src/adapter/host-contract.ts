@@ -60,8 +60,8 @@ export interface HostContext {
   readonly slots: {
     inject(name: string, callback: () => (() => void)): void
     register<P extends object>(options: {
-      name: string; id: string; order?: number; inject(sessionId: string): P
-    }, component: ComponentType<P>): () => void
+      name: string; id?: string; order?: number; priority?: number; inject(sessionId: string): P
+    }, component: ComponentType<P & { locked?: boolean }>): () => void
   }
   effect(callback: () => (() => void), label?: string): unknown
 }

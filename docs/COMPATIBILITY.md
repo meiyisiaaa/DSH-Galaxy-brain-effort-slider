@@ -1,6 +1,6 @@
 # 源码接口核对与验收边界
 
-核对日期：2026-10-17，范围放宽核对于 2026-10-19。目标为官方 `dsh-v0.2.0-rc.2` 及后续 0.2 线版本，固定提交 `639ed015397290b3745d163aafe02ffee4aa3f84`，提交时间 2026-09-29 17:21:31 +08:00。官方项目为 MIT；上游许可证副本见 `UPSTREAM-LICENSE.txt`。
+初次核对日期：2026-10-17；2026-10-19 补充 Desktop `0.2.1-rc.2` ASAR 静态核对。目标基线为官方 `dsh-v0.2.0-rc.2` 及声明范围内的后续 0.2 线版本，固定提交 `639ed015397290b3745d163aafe02ffee4aa3f84`，提交时间 2026-09-29 17:21:31 +08:00。官方项目为 MIT；上游许可证副本见 `UPSTREAM-LICENSE.txt`。
 
 ## 版本确认与上一版差异
 
@@ -18,7 +18,7 @@
 
 1. **发现与加载**：包声明 `dsh.client.platform: web`，导出 `./client`，Host Loader 条目使其参与扫描。浏览器产物执行 `window.__ModuleLoader__.load({ id, factory })`，factory 接收 require 并返回模块导出。这里不是 DOM 注入脚本，也不是一个假模型 API。来源：[Client Modules](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/docs/subsystems/client-modules.md)、[官方构建封装](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/client/tsdown.client.ts)。
 2. **可安装 bundle**：`dsh.bundle.patch` 指向 `cordis.patch.yml`，使用 `insert` 注册 Host 空 `apply` 入口。来源：[官方扩展 fixture 清单](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/apps/web/tests/fixtures/plugins/fixture-input-extension/package.json)、[对应 patch](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/apps/web/tests/fixtures/plugins/fixture-input-extension/cordis.patch.yml)。
-3. **位置**：`conversation.input.left` 是 session scope 的 list 插槽。先 `ctx.slots.inject` 等待声明，再 `register`，使用独立 id；不覆盖原生单实例模型插槽。来源：[插槽声明](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/client/ui-conversation/src/client/contract/slots.ts)。
+3. **位置**：已发布的 v0.1.4 在 `conversation.input.left` session-scope list 插槽增加额外入口；这是 rc.2 官方[插槽声明](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/client/ui-conversation/src/client/contract/slots.ts)所确认的旧行为。当前工作树改为注册组合模型与推理力度的 `conversation.input.model` 单实例插槽。对 Desktop `0.2.1-rc.2` ASAR 的静态检查确认宿主优先级为 0、插件为 -1，较低值优先；插件停用时，作用域释放器恢复原生注册。该证据仅覆盖这一版本的包内插槽、优先级和释放路径，未在实际运行的应用界面中验证替换效果。
 4. **模型服务**：`ctx.modelDirectories.directoryFor(sessionId)` 返回原生共享 `ModelDirectory`；`store.subscribe/getSnapshot`、`load()`、`select({provider,model,reasoningEffort})`。来源：[服务](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/client/ui-model-selection/src/client/service.ts)、[目录](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/client/ui-model-selection/src/client/directory.ts)。
 5. **真实能力**：按 provider id + model id 匹配，读取 `reasoning.efforts[{id,name}]` 和可选 `defaultEffort`。选择态来自当前完整 selection；不假设 off/low/high/max 永远齐全。来源：[模型数据类型](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/api/session-controller/src/types.ts)。
 6. **会话生命周期**：`ctx.sessions.binding(sessionId).session` 提供 subscribe/getSnapshot；使用 running、removed、openState、pendingSubmissions、awaitingFirstTurn、subagent。来源：[Session 类](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/api/session-controller/src/client/sessions/session.ts)、[快照](https://github.com/deepseek-ai/deepseek-harness/blob/639ed015397290b3745d163aafe02ffee4aa3f84/packages/api/session-controller/src/client/contract/snapshot.ts)。
@@ -32,12 +32,12 @@
 
 `npm run check` 覆盖：类型检查、声明范围与 lockfile 回归测试、纯适配器测试、UI 交互测试（随测试目录执行）、原生产物构建、模拟 ModuleLoader 验收。bundle 验收检查惰性注册、允许的外部模块、插槽声明先于注册、共享目录引用、内嵌角色素材、样式卸载与 bundle 配置。
 
-独立浏览器验收使用真实适配器与 UI，但 Host 是明确标注的模拟 observable store。没有向实际 DeepSeek 发起模型请求。实际 profile 安装、官方 rc.2 桌面安装包运行、真实网络断线/重连、Host 默认值落盘与官方客户端完整回归仍需要在目标安装中验证。第三方重打包即便显示相同版本，也不自动视为已验证。
+独立浏览器验收使用真实适配器与 UI，但 Host 是明确标注的模拟 observable store；没有向实际 DeepSeek 发起模型请求。已发布的 v0.1.4 附加入口包曾在 Desktop `0.2.1-rc.2` profile 中安装并启用，这不代表当前选择器替换改动已在真实应用界面中验收。替换行为目前只有该版本 ASAR 的静态证据。真实网络断线/重连、Host 默认值落盘与官方客户端完整回归仍需在目标安装中验证。第三方重打包即便显示相同版本，也不自动视为已验证。
 
 ## 运行时风险边界
 
 - 客户端“运行中禁用”是防误操作保护，无法对远端并发开始任务作原子承诺。真实请求边界仍由 Host 管理。
-- 同一模型的原生选择会同步进插件。提交前再次核对当前 route，防止旧手势写入新的模型。
+- 插件读取共享 `ModelDirectory` 中的当前选择。提交前再次核对当前 route，防止旧手势写入新的模型。
 - 远端成功并不等于下一条模型请求已经开始，更不等于异步默认持久化成功。
-- provider 默认未明确指定的场景保持无选中档位；恢复到未指定默认要用原生菜单。
+- 当前模型未声明 `defaultEffort` 时，选择器提供“跟随默认”以清除显式档位，不会选中第一档。
 - 不自动安装依赖插件、不自动修改权限、不绕过 compatibility 检查、不写入 credentials。

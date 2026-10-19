@@ -304,6 +304,18 @@ test('external model/value changes cancel an in-flight gesture', () => {
   assert.equal(track.style.getPropertyValue('--dsg-progress'), '0.5');
 });
 
+test('different provider/model routes cancel gestures even with identical names and tiers', () => {
+  render({ selectionKey: '["provider-a","model"]' });
+  const track = open();
+  pointer(track, 'pointerdown', 100);
+  pointer(track, 'pointermove', 400);
+  render({ selectionKey: '["provider-b","model"]' });
+  assert.equal(selector('.dsg-track'), track, 'the combined panel stays mounted');
+  pointer(track, 'pointerup', 400);
+  assert.deepEqual(calls, []);
+  assert.equal(track.getAttribute('aria-valuetext'), 'Low');
+});
+
 test('a stale rejection does not overwrite a newer model or expose its old error', async () => {
   const job = deferred();
   render({ onCommit: value => { calls.push(value); return job.promise; } });

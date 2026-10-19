@@ -11,7 +11,14 @@ function store<T>(initial: T): ObservableSnapshot<T> & { set(next: T): void } {
 }
 const initial: ModelDirectoryState = {
   current: { provider: 'deepseek', model: 'deepseek-v4-pro', reasoningEffort: 'high' },
-  groups: [{ id: 'deepseek', name: 'DeepSeek', models: [{ id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', reasoning: { defaultEffort: 'high', efforts: [{ id: 'off', name: 'Off' }, { id: 'low', name: 'Low' }, { id: 'high', name: 'High' }, { id: 'max', name: 'Max' }] } }] }],
+  groups: [
+    { id: 'deepseek', name: 'DeepSeek', models: [
+      { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', reasoning: { defaultEffort: 'high', efforts: [{ id: 'off', name: 'Off' }, { id: 'low', name: 'Low' }, { id: 'high', name: 'High' }, { id: 'max', name: 'Max' }] } },
+      { id: 'deepseek-flex', name: 'DeepSeek Flex', reasoning: { efforts: [{ id: 'low', name: 'Low' }, { id: 'high', name: 'High' }, { id: 'max', name: 'Max' }] } },
+      { id: 'deepseek-chat', name: 'DeepSeek Chat' },
+    ] },
+    { id: 'alternate', name: 'Alternate Provider', models: [{ id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', reasoning: { defaultEffort: 'low', efforts: [{ id: 'low', name: 'Low' }, { id: 'high', name: 'High' }] } }] },
+  ],
   routable: true, failures: [], status: 'ready', pending: null, error: null,
 }
 const directoryStore = store(initial)
@@ -31,7 +38,7 @@ const directory: ModelDirectory = {
       directoryStore.set({ ...directoryStore.getSnapshot(), status: 'error', pending: null, error: '模拟保存失败：请重试' })
       return { ok: false, error: { code: 'preview/save-failed', message: '模拟保存失败：请重试' } }
     }
-    directoryStore.set({ ...directoryStore.getSnapshot(), current: selection, status: 'ready', pending: null, error: null })
+    directoryStore.set({ ...directoryStore.getSnapshot(), current: selection, routable: true, status: 'ready', pending: null, error: null })
     return { ok: true, value: undefined }
   },
 }
@@ -53,10 +60,10 @@ function Preview() {
     <section className="qa-stage">
       <div className="qa-eyebrow">THINKING, WITH A LITTLE STARDUST</div>
       <h1>把思考交给星河。</h1>
-      <p>沿着银河滑动，选择当前模型支持的推理档位。</p>
+      <p>在同一处选择模型，沿着银河调整思考力度。</p>
       <div className="qa-composer">
         <textarea aria-label="消息输入预览" placeholder="今天，想一起探索什么？" />
-        <div className="qa-toolbar"><div className="qa-native">{state.current?.model ?? '选择模型'}⌄</div><GalaxyEffortControl directory={directory} session={session} available={available} /><button className="qa-send" aria-label="预览发送，不发送请求">↑</button></div>
+        <div className="qa-toolbar"><GalaxyEffortControl directory={directory} session={session} available={available} /><button className="qa-send" aria-label="预览发送，不发送请求">↑</button></div>
       </div>
       <div className="qa-caption">银河推理滑块 · 原生插件组件预览</div>
     </section>
@@ -67,7 +74,7 @@ function Preview() {
         <button onClick={() => session.set({ ...session.getSnapshot(), running: !currentSession.running })}>任务{currentSession.running ? '结束' : '运行中'}</button>
         <button onClick={() => { failNext = true; setFailureArmed(true) }}>{failureArmed ? '下一次切换将失败' : '模拟下一次失败'}</button>
         <button onClick={() => { directoryStore.set({ ...initial, current: { ...initial.current!, reasoningEffort: 'low' } }); setFailureArmed(false) }}>原生菜单同步 Low</button>
-        <button onClick={() => directoryStore.set({ ...initial, groups: [{ id: 'deepseek', name: 'DeepSeek', models: [{ id: 'deepseek-v4-pro', name: '不支持推理档位的模型' }] }] })}>无推理能力</button>
+        <button onClick={() => directoryStore.set({ ...initial, current: { provider: 'deepseek', model: 'deepseek-chat' } })}>无推理能力</button>
         <button onClick={() => directoryStore.set({ ...initial, current: { ...initial.current!, reasoningEffort: 'retired' }, retainedEffort: '旧档位' })}>未知旧档位</button>
         <button onClick={() => { directoryStore.set(initial); session.set({ ...session.getSnapshot(), running: false }); failNext = false; setFailureArmed(false) }}>重置</button>
       </div>

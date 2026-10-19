@@ -75,8 +75,8 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
   // Cheap identity for "which capability set is this gesture about". A drag re-renders on
   // every tier change, so the string build stays out of that path once options settle.
   const capabilityKey = useMemo(
-    () => JSON.stringify([modelLabel, options.map(option => [option.value, option.label])]),
-    [modelLabel, options],
+    () => JSON.stringify([props.selectionKey, modelLabel, options.map(option => [option.value, option.label])]),
+    [props.selectionKey, modelLabel, options],
   );
   const capabilityRef = useRef(capabilityKey);
   capabilityRef.current = capabilityKey;
@@ -92,6 +92,7 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
   const currentLabel = options[committedIndex]?.label
     ?? props.currentLabel
     ?? (value ? '当前档位不可用' : '跟随默认');
+  const triggerValue = props.modelPicker ? currentLabel : unavailable ? '不可用' : currentLabel;
   const shownError = busy ? undefined : localError || props.error;
   const helpText = busy && selected ? `正在更新为 ${selected.label}`
     : unavailable ? disabledReason || '当前模型未提供可调整的思考力度。'
@@ -198,6 +199,7 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
     cancelDrag();
   }, [value, capabilityKey, cancelDrag]);
   useLayoutEffect(() => { if ((disabled || pending) && drag.current) cancelDrag(); }, [disabled, pending, cancelDrag]);
+  useEffect(() => { if (props.triggerDisabled) closePopover(); }, [props.triggerDisabled, closePopover]);
   useEffect(() => { setLocalError(undefined); }, [value, capabilityKey]);
   useEffect(() => { setAvatarFailed(false); }, [avatarSrc]);
   useEffect(() => {
@@ -309,6 +311,7 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
     };
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape') return;
+      if ((event.target as Element | null)?.closest?.('.dsg-model-picker[data-expanded="true"]')) return;
       event.preventDefault();
       event.stopPropagation();
       closePopover(true);
@@ -422,25 +425,26 @@ export function GalaxyEffortSlider(props: GalaxyEffortSliderProps) {
   const starIcon = <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="m16 2 3.9 10.1L30 16l-10.1 3.9L16 30l-3.9-10.1L2 16l10.1-3.9L16 2Z" fill="currentColor"/><path d="m16 8 2.2 5.8L24 16l-5.8 2.2L16 24l-2.2-5.8L8 16l5.8-2.2L16 8Z" fill="#fff"/></svg>;
 
   return <>
-    <span className="dsg dsg-anchor" data-paused={!pageVisible || !anchorVisible}>
+    <span className="dsg dsg-anchor" data-native={!!props.modelPicker} data-paused={!pageVisible || !anchorVisible}>
       <button ref={triggerRef} type="button" className="dsg-chip" onClick={() => open ? closePopover() : setOpen(true)}
+        disabled={props.triggerDisabled}
         aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? `${id}-panel` : undefined}
-        aria-label={`思考力度：${unavailable ? '不可用' : currentLabel}${busy ? '，更新中' : ''}`}
-        title={unavailable ? disabledReason || '当前模型未提供可调整的思考力度' : '调整模型思考力度'} data-unavailable={unavailable} data-pending={busy}>
+        aria-label={`${props.modelPicker ? `模型与思考力度：${props.triggerLabel}，` : '思考力度：'}${triggerValue}${busy ? '，更新中' : ''}`}
+        title={props.modelPicker ? '选择模型与思考力度' : unavailable ? disabledReason || '当前模型未提供可调整的思考力度' : '调整模型思考力度'} data-unavailable={unavailable} data-pending={busy}>
         <span className="dsg-chip-star">{starIcon}</span>
-        <span className="dsg-chip-label">思考力度</span>
-        <span className="dsg-chip-value">{unavailable ? '不可用' : currentLabel}</span>
+        <span className="dsg-chip-label">{props.triggerLabel ?? '思考力度'}</span>
+        {(!props.modelPicker || options.length > 0) && <span className="dsg-chip-value">{triggerValue}</span>}
         {busy ? <span className="dsg-spinner" aria-hidden="true"/> : <svg className="dsg-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>}
       </button>
       <span className="dsg-sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement}</span>
     </span>
     {open && typeof document !== 'undefined' && createPortal(
       <div ref={popoverRef} id={`${id}-panel`} className="dsg dsg-panel" role="dialog" tabIndex={-1}
-        aria-label="思考力度" aria-describedby={helpText ? `${id}-help` : undefined} aria-busy={busy}
+        aria-label={props.modelPicker ? '模型与思考力度' : '思考力度'} aria-describedby={helpText ? `${id}-help` : undefined} aria-busy={busy}
         data-paused={!pageVisible || !anchorVisible} style={position}>
-        <header className="dsg-header">
-          <p className="dsg-model" title={modelLabel}>{modelLabel || '当前模型'}</p>
-          <button type="button" className="dsg-close" aria-label="关闭思考力度设置" onClick={() => closePopover(true)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8"/></svg></button>
+        <header className="dsg-header" data-model-picker={!!props.modelPicker}>
+          {props.modelPicker ?? <p className="dsg-model" title={modelLabel}>{modelLabel || '当前模型'}</p>}
+          <button type="button" className="dsg-close" aria-label={props.modelPicker ? '关闭模型与思考力度设置' : '关闭思考力度设置'} onClick={() => closePopover(true)}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8"/></svg></button>
         </header>
         {options.length > 0 && <div className="dsg-control" data-unavailable={unavailable}>
           <div ref={trackRef} className="dsg-track" role={displayedIndex >= 0 ? 'slider' : 'group'} tabIndex={canChange ? 0 : -1}

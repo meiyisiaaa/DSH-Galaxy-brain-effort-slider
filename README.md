@@ -2,7 +2,7 @@
 
 English · [简体中文](README.zh-CN.md)
 
-A native reasoning-effort picker with a flowing pixel nebula and an original chibi whale-girl thumb. It lives beside the composer and uses the same model directory, selection state, and submission path as the native model menu and `/model`.
+A model-and-effort picker with a flowing pixel nebula and an original chibi whale-girl thumb. While enabled, it occupies the host's combined model-and-effort selector and uses the shared native model directory and selection path used by `/model`.
 
 ![Galaxy Effort Slider in the standalone local preview](docs/images/preview.jpg)
 
@@ -13,7 +13,7 @@ A native reasoning-effort picker with a flowing pixel nebula and an original chi
 - **A living pixel galaxy.** Seamless star flow, independently twinkling pixels, and progressively richer layers as the selected effort increases. An advertised `off` or `none` level keeps the rail clear. One star in four carries the twinkle.
 - **A responsive character.** The original three-expression whale girl follows the pointer, leans into the drag, and settles onto the chosen level with a damped spring.
 - **Real model capabilities.** Levels and labels come directly from the selected provider/model's `reasoning.efforts`. No invented levels or `max`/`xhigh` remapping. Every advertised level stays on the rail; five or more stagger across two rows rather than reflowing away from the positions they describe.
-- **One source of truth.** Native menu changes appear in the slider. Failed submissions keep the host's actual value and show a retryable error.
+- **Host-authoritative state.** The picker reads the active session's model and effort from the shared directory. Failed selections keep the host's actual value visible and expose a retryable error.
 - **Careful interaction.** Commit on release, cancel interrupted gestures, support keyboard controls, and pause animation when hidden. Reduced-motion and light/dark themes are supported.
 - **Small native integration.** Reuses the host's React and services; no production npm dependencies, install-time lifecycle scripts, or additional external servers.
 
@@ -21,11 +21,11 @@ This is an independent third-party plugin, with no affiliation with or endorseme
 
 ## Compatibility
 
-Plugin **0.1.4** targets **DeepSeek Harness 0.2.0-rc.2** and later 0.2-line releases. Its integration was checked against official tag `dsh-v0.2.0-rc.2`, commit `639ed015397290b3745d163aafe02ffee4aa3f84` (September 29, 2026).
+The published plugin **0.1.4** targets **DeepSeek Harness 0.2.0-rc.2** and later 0.2-line releases. Its released integration was checked against official tag `dsh-v0.2.0-rc.2`, commit `639ed015397290b3745d163aafe02ffee4aa3f84` (September 29, 2026).
 
 Both `engines.dsh` and the optional `@deepseek-ai/dsh` peer dependency declare `^0.2.0-rc.2`. That range admits the audited rc.2 baseline and later 0.2-line prereleases and releases, while excluding 0.3.0 and anything newer, whose surfaces this plugin has not audited. Making the peer optional prevents package managers from automatically installing another DSH copy; it does not bypass the host's compatibility check.
 
-Local tests, a simulated native loader, and browser-preview checks have passed, and the bundle was installed and enabled in a real Desktop profile running `0.2.1-rc.2`, where it registered its `conversation.input.left` occupant. Other distributions, versions, and third-party builds are unverified. See [compatibility details and upstream evidence](docs/COMPATIBILITY.md).
+The published v0.1.4 bundle passed its local, simulated-loader, and browser-preview checks and was installed and enabled in a real Desktop profile running `0.2.1-rc.2`; that release registered an extra `conversation.input.left` entry. The current local replacement uses `conversation.input.model`. Static inspection of the same Desktop version's ASAR confirmed the single slot and priority ordering, but the replacement UI has not been visually verified in a running app. Replacement behavior has source-level evidence only for `0.2.1-rc.2`; the declared range does not mean every 0.2 release was checked. Other distributions and third-party builds are unverified. See [compatibility details and upstream evidence](docs/COMPATIBILITY.md).
 
 ### How selection affects defaults
 
@@ -34,6 +34,8 @@ The slider calls native `ModelDirectory.select` with the full provider/model/eff
 ## Installation
 
 Back up the target profile's `package.json`, lockfile, and `cordis.patch.yml`. Check `dsh --version`, and use the CLI supplied with your existing **0.2** installation.
+
+The package version remains `0.1.4`; the selector replacement in this working tree is unreleased. The v0.1.4 installation commands below refer to the published build.
 
 ### Option A: install a prebuilt package
 
@@ -65,7 +67,7 @@ No npm registry account is needed to download this public repository. With Git a
 npm pack "git+https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider.git#8257d0ab5a645bcd39e64c48312953b6a90befa8" --ignore-scripts
 ```
 
-This exact download command has been verified to produce `dsh-galaxy-effort-slider-0.1.4.tgz`, including the prebuilt plugin and both READMEs. Then install that tarball using Option A. This verifies package retrieval, not installation in your actual DSH profile. The pinned commit is the initial v0.1.4 source publication; later documentation changes do not alter its runtime.
+This exact command was verified to produce `dsh-galaxy-effort-slider-0.1.4.tgz`, including the prebuilt plugin and both READMEs. The pinned commit is the initial v0.1.4 additive release, which registers `conversation.input.left`; it does not include the current local `conversation.input.model` replacement. Install the tarball using Option A. This verifies package retrieval, not installation in your actual DSH profile.
 
 ### Option B: install from npm
 
@@ -98,18 +100,18 @@ Disable the plugin in **Plugins**, restarting if hot unloading is unavailable. T
 dsh plugin --profile web remove dsh-galaxy-effort-slider
 ```
 
-For Desktop, replace `web` with `desktop` and fully quit the app first. Removing the plugin does not restore model or reasoning defaults you previously selected; use the native model menu to change them.
+For Desktop, replace `web` with `desktop` and fully quit the app first. Disabling the plugin restores the native model selector. Removing it does not roll back model or reasoning defaults you previously selected; use the restored selector to change them.
 
 ## Usage
 
-Open the reasoning chip beside the composer. Click a level or drag the character and release to submit. The native model selector remains available.
+While enabled, the plugin replaces the host's combined model-and-effort selector. Open it to search models grouped by provider, choose a model, and set effort with the galaxy slider.
 
 - **Keyboard:** arrow keys, Home/End, Enter/Space, and Escape are supported.
 - **Busy or unavailable sessions:** switching is disabled while running, awaiting submission, disconnected/not ready, or while another selection is pending. State is checked again before submission; the host remains responsible for atomic request-boundary and concurrency rules.
 - **No reasoning capability:** the plugin does not create choices the model has not advertised. Subagent sessions do not display the control.
-- **Unspecified default:** if no explicit effort or `defaultEffort` is present, the chip shows “跟随默认” (follow default) without selecting the first option. To return from an explicit effort to an unspecified provider default, use the native menu.
+- **Unspecified default:** for a model with no declared `defaultEffort`, choose “跟随默认” (follow default) to clear the explicit effort without selecting the first option.
 - **Unknown saved effort:** it stays visibly unknown rather than being replaced with the first option.
-- **Directory errors:** retry through the native model menu. The slider shares that directory and updates when it recovers.
+- **Directory errors:** retry loading directly from the picker.
 
 ## Development
 
@@ -121,7 +123,7 @@ npm run check
 npm run preview
 ```
 
-The preview runs at `http://localhost:4397`. It renders the real adapter and UI against a clearly simulated host, makes no model requests, and consumes no model credits. Controls cover busy sessions, selection failures, native-menu synchronization, unsupported capabilities, unknown saved efforts, and light/dark themes.
+The preview runs at `http://localhost:4397`. It renders the real adapter and UI against a clearly simulated host, makes no model requests, and consumes no model credits. Controls cover busy sessions, selection failures, unsupported capabilities, unknown saved efforts, and light/dark themes.
 
 Build and package:
 
@@ -131,7 +133,7 @@ npm run test:bundle
 npm pack --ignore-scripts
 ```
 
-`npm run check` runs TypeScript checks, all unit/UI/motion tests, the production build, and simulated native-loader checks. The v0.1.4 released source line now has **67 passing tests**. These checks do not replace installation testing in a real client.
+`npm run check` runs TypeScript checks, unit/UI/motion tests, the production build, and simulated native-loader checks. These checks do not replace installation testing in a real client.
 
 The browser artifact is a lazy CommonJS factory registered through `window.__ModuleLoader__`, not a standalone ESM script. React, React DOM, and the JSX runtime stay external to reuse the host's copies. The character image is embedded as a data URL; styles are added and removed through the Cordis lifecycle.
 
@@ -145,7 +147,7 @@ Use the exact official tag, not a moving `master` checkout. The evidence manifes
 
 ## Project layout
 
-- `src/client.ts`: Cordis dependencies and `conversation.input.left` slot registration
+- `src/client.ts`: Cordis dependencies and `conversation.input.model` slot registration
 - `src/adapter/`: native model/session bridge, validation, and error handling
 - `src/ui/`: galaxy slider, styling, and motion
 - `src/assets/`: original character artwork
@@ -156,7 +158,7 @@ Use the exact official tag, not a moving `master` checkout. The evidence manifes
 
 ## Troubleshooting
 
-**No chip appears.** Confirm the plugin is enabled and that the profile includes the official `ui-conversation`, `ui-model-selection`, and `ui-session` services. Restart the profile. If it still does not appear, collect the host's plugin diagnostics and check the version.
+**No picker appears.** Confirm the plugin is enabled and that the profile includes the official `ui-conversation`, `ui-model-selection`, and `ui-session` services. Restart the profile. If it still does not appear, collect the host's plugin diagnostics and check the version.
 
 **The host reports incompatibility.** Stop and check [COMPATIBILITY.md](docs/COMPATIBILITY.md). Do not change the version range to `*` or approve a compatibility override just to force installation.
 

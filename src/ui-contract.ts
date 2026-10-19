@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 /** Presentation contract. IDs and labels always come from the selected host model. */
 export interface EffortOption { readonly value: string; readonly label: string }
 export interface GalaxyEffortSliderProps {
@@ -10,6 +12,10 @@ export interface GalaxyEffortSliderProps {
   readonly modelLabel?: string
   readonly currentLabel?: string
   readonly disabledReason?: string
+  readonly modelPicker?: ReactNode
+  readonly selectionKey?: string
+  readonly triggerLabel?: string
+  readonly triggerDisabled?: boolean
   readonly avatarSrc?: string
   readonly avatarAlt?: string
   readonly avatarLayout?: 'single' | 'triptych'

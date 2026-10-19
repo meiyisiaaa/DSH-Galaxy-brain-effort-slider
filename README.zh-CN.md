@@ -2,7 +2,7 @@
 
 [English](README.md) · 简体中文
 
-把流动的像素星云和原创 Q 版鲸鱼女孩放进输入栏。推理档位直接读取当前模型的真实能力，与原生模型菜单、`/model` 共用目录、选择状态和提交入口。
+把流动的像素星云和原创 Q 版鲸鱼女孩放进输入栏。插件启用时占据宿主原生的模型与推理力度组合选择器位置，复用与 `/model` 共用的原生模型目录和选择接口。
 
 ![银河推理滑块的独立本地预览](docs/images/preview.jpg)
 
@@ -21,11 +21,11 @@
 
 ## 兼容版本
 
-插件 **0.1.4** 以 **DeepSeek Harness 0.2.0-rc.2** 及后续 0.2 线版本为目标。已逐项核对官方标签 `dsh-v0.2.0-rc.2`、固定提交 `639ed015397290b3745d163aafe02ffee4aa3f84`（2026 年 9 月 29 日）的接口。
+已发布的插件 **0.1.4** 以 **DeepSeek Harness 0.2.0-rc.2** 及后续 0.2 线版本为目标。该发布版接口已按官方标签 `dsh-v0.2.0-rc.2`、固定提交 `639ed015397290b3745d163aafe02ffee4aa3f84`（2026 年 9 月 29 日）核对。
 
 `engines.dsh` 与可选的 `@deepseek-ai/dsh` peer dependency 均声明 `^0.2.0-rc.2`。该范围接受已核对的 rc.2 基线与后续 0.2 线预发布/正式版本，排除 0.3.0 及更新版本——这些版本的接口尚未核对。将 peer 标为 optional，是为了避免包管理器自动安装另一套 DSH，不会绕过宿主检查。
 
-本地测试、模拟原生加载器和浏览器预览验收已通过；插件已在真实 Desktop profile（`0.2.1-rc.2`）中安装并启用，并注册了 `conversation.input.left` 占位。其他分发包、版本和第三方改版未认证。详见[兼容说明与上游证据](docs/COMPATIBILITY.md)。
+已发布的 v0.1.4 包通过了当时的本地、模拟加载器和浏览器预览检查，并在 Desktop `0.2.1-rc.2` 的真实 profile 中安装启用；该发布包注册的是额外的 `conversation.input.left` 入口。当前本地改动改为使用 `conversation.input.model`。对同一 Desktop 版本的 ASAR 静态检查确认了单一插槽及优先级顺序，但尚未在运行中的应用里目视验证替换后的界面。替换行为目前只有 `0.2.1-rc.2` 的源码级证据；声明的版本范围不代表每个 0.2 版本都已核对。其他分发包和第三方改版未验证。详见[兼容说明与上游证据](docs/COMPATIBILITY.md)。
 
 ### 选择档位会怎样影响默认值
 
@@ -34,6 +34,8 @@
 ## 安装
 
 请先备份目标 profile 的 `package.json`、锁文件和 `cordis.patch.yml`，检查 `dsh --version`，并使用现有 **0.2** 安装配套的 CLI。
+
+包版本仍为 `0.1.4`；当前工作树里的选择器替换改动尚未发布。下文的 v0.1.4 安装命令指向已发布版本。
 
 ### 方式一：安装预构建包
 
@@ -65,7 +67,7 @@ CLI 会把首次成功添加的新 bundle 纳入对应 profile；若已被关闭
 npm pack "git+https://github.com/meiyisiaaa/DSH-Galaxy-brain-effort-slider.git#8257d0ab5a645bcd39e64c48312953b6a90befa8" --ignore-scripts
 ```
 
-这条完整命令已验证，会生成包含预构建插件和双语 README 的 `dsh-galaxy-effort-slider-0.1.4.tgz`。随后按方式 A 安装该文件。这验证的是下载与打包，不代表已经在您的实际 DSH profile 中安装。固定提交对应首次 v0.1.4 源码发布，后续文档更新不改变其运行代码。
+这条命令已验证会生成包含预构建插件和双语 README 的 `dsh-galaxy-effort-slider-0.1.4.tgz`。固定提交对应首次发布的 v0.1.4 附加入口版本，会注册 `conversation.input.left`；它不包含当前本地的 `conversation.input.model` 替换改动。随后按方式一安装该文件。这验证的是下载与打包，不代表已在您的实际 DSH profile 中安装。
 
 ### 方式二：从 npm 安装
 
@@ -98,18 +100,18 @@ dsh plugin --profile desktop add "/绝对路径/dsh-galaxy-effort-slider-0.1.4.t
 dsh plugin --profile web remove dsh-galaxy-effort-slider
 ```
 
-Desktop 用户将 `web` 替换为 `desktop`，并先完整退出应用。卸载不会回滚之前通过插件选择的模型或推理默认值；需要时用原生模型菜单重新选择。
+Desktop 用户将 `web` 替换为 `desktop`，并先完整退出应用。关闭插件后，宿主原生模型选择器会恢复。卸载不会回滚之前通过插件选择的模型或推理默认值；需要时可用恢复后的选择器重新选择。
 
 ## 使用
 
-点击输入栏旁的推理档位入口展开滑块，点击目标档位，或拖动角色后松手提交。原生模型选择器始终保留。
+插件启用时，会替换宿主原生的模型与推理力度组合选择器。展开后可按 provider 分组浏览并搜索模型，再用银河滑块选择推理力度。
 
 - **键盘操作：** 支持方向键、Home / End、Enter / Space 和 Escape。
 - **会话忙碌或不可用：** 运行中、等待提交、连接未就绪或已有选择正在提交时禁用切换。提交前再次核对状态；请求边界与并发的原子性仍由宿主负责。
 - **没有推理能力：** 不会为模型制造未声明的选项。子代理会话不展示该控制器。
-- **未指定默认档位：** 没有显式 effort 或 `defaultEffort` 时，显示“跟随默认”，不自动选中第一项。从显式档位切回未指定的 provider 默认值，请使用原生模型菜单。
+- **未指定默认档位：** 当前模型没有声明 `defaultEffort` 时，可点击“跟随默认”清除显式档位；不会自动选中第一项。
 - **旧档位已不可用：** 明确保留未知状态，不伪装成第一个档位。
-- **目录读取失败：** 从原生模型菜单重试。插件共用同一目录，恢复后会同步更新。
+- **目录读取失败：** 可直接在选择器中重试加载。
 
 ## 开发与验收
 
@@ -121,7 +123,7 @@ npm run check
 npm run preview
 ```
 
-预览默认位于 `http://localhost:4397`。它使用真实适配器和 UI，连接明确标注的模拟宿主，不发起模型请求，也不消耗模型额度。页面提供运行中、选择失败、原生菜单同步、无推理能力、未知旧档位和深浅色等验收开关。
+预览默认位于 `http://localhost:4397`。它使用真实适配器和 UI，连接明确标注的模拟宿主，不发起模型请求，也不消耗模型额度。页面提供运行中、选择失败、无推理能力、未知旧档位和深浅色等验收开关。
 
 构建与打包：
 
@@ -131,7 +133,7 @@ npm run test:bundle
 npm pack --ignore-scripts
 ```
 
-`npm run check` 包含 TypeScript 检查、全部单元/UI/动效测试、生产构建和模拟原生加载器验收。v0.1.4 发布源码线现为 **67 项测试通过**。这些检查不能替代真实客户端安装测试。
+`npm run check` 包含 TypeScript 检查、单元/UI/动效测试、生产构建和模拟原生加载器验收。这些检查不能替代真实客户端安装测试。
 
 浏览器产物是通过 `window.__ModuleLoader__` 注册的惰性 CommonJS 工厂，不是可直接放进任意 HTML 的 ESM 脚本。React、React DOM 与 JSX runtime 保持外部引用，复用宿主实例。角色图片以内嵌 data URL 打包；CSS 通过 Cordis 生命周期挂载和移除。
 
@@ -145,7 +147,7 @@ npm run check:upstream -- /已下载的/deepseek-harness-rc2源码目录
 
 ## 项目结构
 
-- `src/client.ts`：Cordis 服务依赖与 `conversation.input.left` 插槽注册
+- `src/client.ts`：Cordis 服务依赖与 `conversation.input.model` 插槽注册
 - `src/adapter/`：原生模型/会话桥接、提交校验与错误处理
 - `src/ui/`：银河滑块、样式与动效
 - `src/assets/`：原创角色素材
@@ -156,7 +158,7 @@ npm run check:upstream -- /已下载的/deepseek-harness-rc2源码目录
 
 ## 常见问题
 
-**没有出现入口。** 确认插件已启用，且 profile 包含官方 `ui-conversation`、`ui-model-selection` 和 `ui-session` 服务。重启后仍未出现时，请保留 Host 的插件诊断信息并核对版本。
+**没有出现选择器。** 确认插件已启用，且 profile 包含官方 `ui-conversation`、`ui-model-selection` 和 `ui-session` 服务。重启后仍未出现时，请保留 Host 的插件诊断信息并核对版本。
 
 **提示不兼容。** 停止安装，检查 [COMPATIBILITY.md](docs/COMPATIBILITY.md)。不要仅为了装上插件就把版本范围改成 `*` 或批准兼容豁免。
 
